@@ -40,7 +40,7 @@ public class Attachment  {
     public Attachment(UserTracker tracker, JLabel positionLabel) {
         String robotID = "myRobot";
         try {
-            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\zeno\\Documents\\NetBeansProjects\\zeno-ip.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\samf\\Documents\\NetBeansProjects\\zeno-ip.txt"));
             String robotIP = br.readLine();
            
             // set respective addresses

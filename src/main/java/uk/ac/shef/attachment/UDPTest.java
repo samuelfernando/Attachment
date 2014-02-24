@@ -20,7 +20,7 @@ public class UDPTest {
     public UDPTest() throws Exception {
         
             socket = new DatagramSocket();
-            address = InetAddress.getByName("192.168.0.100");
+            address = InetAddress.getByName("192.168.0.101");
          
             // send the response to the client at "address" and "port"
             
@@ -42,10 +42,11 @@ public class UDPTest {
             //DatagramSocket socket = new DatagramSocket(9999, InetAddress.getByName("192.168.0.101"));
            UDPTest test = new UDPTest();
            test.send("eh-oh");
-           test.send("neutral-wonder");
-           test.send("neutral-laugh");
-           test.send("bye-bye");
-           test.send("distress-no");
+           
+           //test.send("neutral-wonder");
+           //test.send("neutral-laugh");
+           //test.send("bye-bye");
+           //test.send("distress-no");
            test.close(); 
              } catch (Exception ex) {
             Logger.getLogger(UDPTest.class.getName()).log(Level.SEVERE, null, ex);
