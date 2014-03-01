@@ -1,6 +1,5 @@
 package uk.ac.shef.attachment;
 
-import javax.vecmath.*;
 
 import com.primesense.nite.*;
 import java.io.BufferedReader;
@@ -8,11 +7,13 @@ import java.io.FileReader;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.Stack;
 import javax.swing.JLabel;
+import org.robokind.api.animation.Animation;
 import org.robokind.api.motion.Robot.JointId;
 import org.robokind.api.motion.Robot.RobotPositionMap;
 import org.robokind.api.motion.messaging.RemoteRobot;
-import org.robokind.api.speech.messaging.RemoteSpeechServiceClient;
+import org.robokind.client.basic.Robokind;
 
 
 public class Attachment  {
@@ -21,17 +22,16 @@ public class Attachment  {
     PrintStream out;
     JLabel positionLabel;
     DecimalFormat df;
-    PositionPanel positionPanel;
-   
-
-    private static RemoteSpeechServiceClient mySpeaker;
-    
-     JointId neck_yaw;
+    PositionPanel positionPanel;  
+    JointId neck_yaw;
     JointId neck_pitch;
     VectorCalc vc;
     EventTracker et;
     HashMap<Short, Skeleton> currentVisitors;
     UserTracking userTracking;
+    
+    Animation ehoh;
+    
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
   
@@ -60,28 +60,45 @@ public class Attachment  {
             */
             
             // this.positionLabel = positionLabel;
+            ehoh = Robokind.loadAnimation("animations/eh-oh-2.xml");
             currentVisitors = new HashMap<Short, Skeleton>();
             this.positionPanel = positionPanel;
             df = new DecimalFormat("#.##");
             userTracking = new UserTracking(tracker, this); 
             vc = new VectorCalc();
-            et = new EventTracker();
-        } catch (Exception e) {
+            et = new EventTracker(this);
+            et.start();
+         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
+    
+      
 
+    void commence(ZenoAction action) {
+        positionPanel.setText("Greetings visitor "+action.id);
+        positionPanel.repaint();
+    }
+    
+    void conclude(ZenoAction action) {
+        positionPanel.setText("Waiting");
+        positionPanel.repaint();
+    }
     
     void sensorMotors() {
-        float timeSince = et.timeSinceLastUpdate();
+       //float timeSince = et.timeSinceLastUpdate();
          for (UserData user : userTracking.getLastFrame().getUsers()) {
             if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
                 short id = user.getId();
                 if (!currentVisitors.containsKey(id)) {
                     // new visitor
-                    positionPanel.setText("Greetings visitor");
-                    positionPanel.repaint();
+                   // System.out.println("length = "+ehoh.getLength());
+                    
+                   ZenoAction greet = new ZenoAction("Greet", id, ehoh.getLength());
+                    
+                   et.push(greet);
+                   currentVisitors.put(id, user.getSkeleton());
                 }
                 //if (timeSince>200) {
                     //Vector3f vel = userTracking.userVel(user);

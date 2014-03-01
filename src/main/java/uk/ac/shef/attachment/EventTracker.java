@@ -4,36 +4,63 @@
  */
 package uk.ac.shef.attachment;
 
+import java.util.Stack;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 /**
  *
  * @author zeno
  */
 public class EventTracker {
-    long lastBlink = 0;
-    long lastUpdateTime = 0;
-    long lastSpeak = 0;
-    long lastChangeUser =0;
-     long timeSinceLastUpdate() {
-        long currentTime = System.currentTimeMillis();
-        return currentTime - lastUpdateTime;
+   Attachment parent;
+   Stack<ZenoAction> actions;
+   ZenoAction currentAction;
+   boolean busy;
+   long currentTaskEndTime;
+   
+   public EventTracker(Attachment parent) {
+        actions = new Stack<ZenoAction>();
+        this.parent = parent;
+        busy = false;
+   }
+  
+    
+    void start() {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        Runnable toRun = new Runnable() {
+            public void run() {
+                maintainStack();
+            }
+        };
+        scheduler.scheduleAtFixedRate(toRun, 0, 200, TimeUnit.MILLISECONDS);
+    }
+    
+    long timeNow() {
+        return System.currentTimeMillis();
+    }
+    
+    void maintainStack() {
+        
+        if (busy) {
+            if (timeNow()>currentTaskEndTime) {
+                parent.conclude(currentAction);
+                busy = false;
+            }
+        }
+        if (!busy) {
+            if (!actions.isEmpty()) {
+                currentAction = actions.pop();
+                currentTaskEndTime = timeNow() + currentAction.duration;
+                parent.commence(currentAction);
+                busy = true;
+            }
+        }
     }
 
-    long timeSinceLastSpeak() {
-        long currentTime = System.currentTimeMillis();
-        return currentTime - lastSpeak;
+    void push(ZenoAction greet) {
+        actions.push(greet);
     }
     
-    long timeSinceLastBlink() {
-        long currentTime = System.currentTimeMillis();
-        return currentTime - lastBlink;
-    }
-    
-    long timeSinceChangeUser() {
-        long currentTime = System.currentTimeMillis();
-        return currentTime - lastChangeUser;
-    }
-    
-    void updateTime() {
-        lastUpdateTime = System.currentTimeMillis();
-    }
 }
