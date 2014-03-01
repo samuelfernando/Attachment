@@ -58,9 +58,9 @@ public class SoundAnim {
     }
     void run() throws Exception {
         
-        Robot.RobotPositionMap myGoalPositions = myRobot.getDefaultPositions();
-        myRobot.move(myGoalPositions, 1000);
-        Thread.sleep(1000);
+        //Robot.RobotPositionMap myGoalPositions = myRobot.getDefaultPositions();
+        //myRobot.move(myGoalPositions, 1000);
+        //Thread.sleep(1000);
         Animation anim = Robokind.loadAnimation("animations/eh-oh-2.xml");
         myPlayer.playAnimation(anim);
         send("eh-oh");

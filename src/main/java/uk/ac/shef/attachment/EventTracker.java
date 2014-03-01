@@ -32,4 +32,8 @@ public class EventTracker {
         long currentTime = System.currentTimeMillis();
         return currentTime - lastChangeUser;
     }
+    
+    void updateTime() {
+        lastUpdateTime = System.currentTimeMillis();
+    }
 }

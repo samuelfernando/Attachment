@@ -20,6 +20,7 @@ import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 import org.openni.VideoFrameRef;
 
 /**
@@ -39,18 +40,18 @@ public class UserTracking extends Component implements UserTracker.NewFrameListe
     VectorCalc vc;
     public UserTracking(UserTracker tracker, Attachment parent) {
         mTracker = tracker;
-            this.parent = parent;
-            mTracker.addNewFrameListener(this);
+        this.parent = parent;
+        mTracker.addNewFrameListener(this);
             
-            mColors = new int[]{0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF};
-            prevSkeletons = new HashMap<Short, Skeleton>();
-            vc = new VectorCalc();
+        mColors = new int[]{0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF};
+        prevSkeletons = new HashMap<Short, Skeleton>();
+        vc = new VectorCalc();
     }
     UserTrackerFrameRef getLastFrame() {
         return mLastFrame;
     }
     
-     public void drawLimbs(Graphics g) {
+    public void drawLimbs(Graphics g) {
         
         int framePosX = 0;
         int framePosY = 0;
@@ -112,7 +113,7 @@ public class UserTracking extends Component implements UserTracker.NewFrameListe
         }
     }
 
-     UserSpeed findFastestUser(HashMap<Short, Float> speeds) {
+    UserSpeed findFastestUser(HashMap<Short, Float> speeds) {
         UserSpeed userSpeed = new UserSpeed();
         UserData fastestUser=null;
         float maxSpeed=0.0f;
@@ -154,6 +155,38 @@ public class UserTracking extends Component implements UserTracker.NewFrameListe
         prevSkeletons.put(user.getId(), skeleton);
         return total;
     }
+    
+    Vector3f userVel(UserData user) {
+        Vector3f vel = new Vector3f();
+        Skeleton skeleton = user.getSkeleton();
+        Skeleton lastSkeleton = prevSkeletons.get(user.getId());
+        
+        if (lastSkeleton==null) {
+            prevSkeletons.put(user.getId(), skeleton);
+            return vel;
+        }
+        
+        SkeletonJoint[] joints = skeleton.getJoints();
+        Vector3f total = new Vector3f();
+        int count=0;
+        for (SkeletonJoint joint : joints) {
+            JointType type = joint.getJointType();
+            SkeletonJoint lastJoint = lastSkeleton.getJoint(type);
+            Point3f lastPos = vc.convertPoint(lastJoint.getPosition());
+            Point3f curPos = vc.convertPoint(joint.getPosition());
+            Vector3f diff = new Vector3f();
+            diff.sub(curPos, lastPos);
+            total.add(diff);
+            ++count;
+            //float dist = lastPos.distance(curPos);
+            //total+=dist;
+            
+        }
+        total.scale(1/(float)count);
+        prevSkeletons.put(user.getId(), skeleton);
+        return total;
+    }
+    
     
     private void drawLimb(Graphics g, int x, int y, UserData user, JointType from, JointType to) {
         com.primesense.nite.SkeletonJoint fromJoint = user.getSkeleton().getJoint(from);

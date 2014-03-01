@@ -9,16 +9,10 @@ import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.swing.JLabel;
-import org.robokind.api.common.position.NormalizedDouble;
-import org.robokind.api.motion.Joint;
 import org.robokind.api.motion.Robot.JointId;
 import org.robokind.api.motion.Robot.RobotPositionMap;
 import org.robokind.api.motion.messaging.RemoteRobot;
 import org.robokind.api.speech.messaging.RemoteSpeechServiceClient;
-import org.robokind.client.basic.Robokind;
-import static org.robokind.client.basic.RobotJoints.NECK_PITCH;
-import static org.robokind.client.basic.RobotJoints.NECK_YAW;
-import org.robokind.client.basic.UserSettings;
 
 
 public class Attachment  {
@@ -27,6 +21,7 @@ public class Attachment  {
     PrintStream out;
     JLabel positionLabel;
     DecimalFormat df;
+    PositionPanel positionPanel;
    
 
     private static RemoteSpeechServiceClient mySpeaker;
@@ -35,32 +30,40 @@ public class Attachment  {
     JointId neck_pitch;
     VectorCalc vc;
     EventTracker et;
-    Short prevUserTrack=-1;
+    HashMap<Short, Skeleton> currentVisitors;
     UserTracking userTracking;
-    public Attachment(UserTracker tracker, JLabel positionLabel) {
-        String robotID = "myRobot";
+//    public Attachment(UserTracker tracker, JLabel positionLabel) {
+      public Attachment(UserTracker tracker, PositionPanel positionPanel) {
+  
+    String robotID = "myRobot";
         try {
             BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\samf\\Documents\\NetBeansProjects\\zeno-ip.txt"));
             String robotIP = br.readLine();
-           
+            
             // set respective addresses
+            
+            /*
             UserSettings.setRobotId(robotID);
             UserSettings.setRobotAddress(robotIP);
             UserSettings.setSpeechAddress(robotIP);
-            userTracking = new UserTracking(tracker, this);            
-            this.positionLabel = positionLabel;
-            df = new DecimalFormat("#.##");
+                       
+           
             mySpeaker = Robokind.connectSpeechService();
             
             myRobot = Robokind.connectRobot();
             myGoalPositions = new org.robokind.api.motion.Robot.RobotPositionHashMap();
             myGoalPositions = myRobot.getDefaultPositions();
             myRobot.move(myGoalPositions, 1000);
-              neck_yaw = new org.robokind.api.motion.Robot.JointId(myRobot.getRobotId(), new Joint.Id(NECK_YAW));
+            neck_yaw = new org.robokind.api.motion.Robot.JointId(myRobot.getRobotId(), new Joint.Id(NECK_YAW));
             neck_pitch = new org.robokind.api.motion.Robot.JointId(myRobot.getRobotId(), new Joint.Id(NECK_PITCH));
          
+            */
             
-            
+            // this.positionLabel = positionLabel;
+            currentVisitors = new HashMap<Short, Skeleton>();
+            this.positionPanel = positionPanel;
+            df = new DecimalFormat("#.##");
+            userTracking = new UserTracking(tracker, this); 
             vc = new VectorCalc();
             et = new EventTracker();
         } catch (Exception e) {
@@ -69,8 +72,28 @@ public class Attachment  {
 
     }
 
-
+    
     void sensorMotors() {
+        float timeSince = et.timeSinceLastUpdate();
+         for (UserData user : userTracking.getLastFrame().getUsers()) {
+            if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
+                short id = user.getId();
+                if (!currentVisitors.containsKey(id)) {
+                    // new visitor
+                    positionPanel.setText("Greetings visitor");
+                    positionPanel.repaint();
+                }
+                //if (timeSince>200) {
+                    //Vector3f vel = userTracking.userVel(user);
+                    //positionPanel.vel = vel;
+                    //positionPanel.repaint();
+                    //et.updateTime();
+                //}
+            }
+         }
+    }
+/*
+    void oldSensorMotors() {
         HashMap<Short, Float> speeds = new HashMap<Short, Float>();
         float timeSince = et.timeSinceLastUpdate();
          for (UserData user : userTracking.getLastFrame().getUsers()) {
@@ -156,7 +179,7 @@ public class Attachment  {
     }
     
     
-                
+  */              
     
 
    

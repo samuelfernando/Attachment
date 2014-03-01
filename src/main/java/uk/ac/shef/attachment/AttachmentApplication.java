@@ -12,19 +12,28 @@ import org.openni.OpenNI;
 
 import org.openni.*;
 import com.primesense.nite.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import javax.swing.JLabel;
 
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
-public class UserViewerApplication {
+public class AttachmentApplication {
 
     private JFrame mFrame;
-    private UserViewer mViewer;
     private boolean mShouldRun = true;
-
-    public UserViewerApplication(UserTracker tracker) {
+    private Attachment mViewer;
+    
+    public AttachmentApplication(UserTracker tracker) {
         mFrame = new JFrame("NiTE User Tracker Viewer");
-        mViewer = new UserViewer(tracker);
-        
+        PositionPanel positionPanel = new PositionPanel();
+        JPanel panel = new JPanel(new GridLayout(1,2));
+        mViewer = new Attachment(tracker, positionPanel);
+        UserTracking userTracking = mViewer.userTracking;
+        panel.add(userTracking);
+        panel.add(positionPanel);
         // register to key events
         mFrame.addKeyListener(new KeyListener() {
             @Override
@@ -45,12 +54,18 @@ public class UserViewerApplication {
         mFrame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 mShouldRun = false;
+               
             }
         });
 
-        mViewer.setSize(800, 600);
-        mFrame.add("Center", mViewer);
-        mFrame.setSize(mViewer.getWidth(), mViewer.getHeight());
+       // mViewer.setSize(800, 600);
+        userTracking.setSize(800,800);
+        positionPanel.setSize(800,800);
+        mFrame.add(panel);
+
+ //       mFrame.setSize(mViewer.getWidth(), mViewer.getHeight());
+          mFrame.setSize(1600, 800);
+   
         mFrame.setVisible(true);
     }
 
@@ -63,6 +78,7 @@ public class UserViewerApplication {
             }
         }
         mFrame.dispose();
+        System.exit(0);
     }
 
     public static void main(String s[]) {
@@ -79,7 +95,7 @@ public class UserViewerApplication {
         Device device = Device.open(devicesInfo.get(0).getUri());
         UserTracker tracker = UserTracker.create();
 
-        final UserViewerApplication app = new UserViewerApplication(tracker);
+        final AttachmentApplication app = new AttachmentApplication(tracker);
         app.run();
     }
 }
