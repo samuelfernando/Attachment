@@ -5,6 +5,7 @@
 package uk.ac.shef.attachment;
 
 import com.primesense.nite.JointType;
+import com.primesense.nite.Quaternion;
 import com.primesense.nite.UserData;
 import javax.vecmath.Point3f;
 import org.robokind.api.motion.Robot.JointId;
@@ -14,9 +15,7 @@ import org.robokind.api.motion.messaging.RemoteRobot;
  *
  * @author samf
  */
-public class MimicThread extends Thread {
-    MyUserRecord userRec;
-    boolean shouldRun;
+public class MimicThread extends ServantThread {
     RemoteRobot myRobot;
     JointId left_shoulder_pitch;
     JointId left_shoulder_roll;
@@ -27,20 +26,12 @@ public class MimicThread extends Thread {
     JointId right_shoulder_roll;
     JointId right_elbow_pitch;
     VectorCalc vc;
-    MasterThread masterThread;
     
-    public MimicThread(MasterThread masterThread) {
-        this.masterThread = masterThread;
-    }
+   
     
     
-    public MimicThread(MyUserRecord userRec, RemoteRobot myRobot) {
-        this.userRec= userRec;
-        this.myRobot = myRobot;
-        vc = new VectorCalc();
-    }
     @Override
-    public void run() {
+    public void runChecked() {
         UserData user = userRec.userData;
         while (shouldRun) {
             Point3f leftShoulder = vc.convertPoint(user.getSkeleton().getJoint(JointType.LEFT_SHOULDER).getPosition());
@@ -60,33 +51,32 @@ public class MimicThread extends Thread {
                     
             float normPitch = (2.3f-leftShoulderPitch)/2.6f;
             float normRoll = (leftShoulderRoll-1.7f)/1.5f;
-         /*
-            parent.setPosition(left_shoulder_pitch, normPitch);
-            parent.setPosition(left_shoulder_roll, normRoll);
+            setPosition(left_shoulder_pitch, normPitch);
+            setPosition(left_shoulder_roll, normRoll);
             
             float leftElbowPitch = vc.vectorAngle(leftElbow, leftShoulder, leftHand);
             
             normPitch = (float)(3 - leftElbowPitch) / (float)(Math.PI/2);
-            parent.setPosition(left_elbow_pitch, normPitch);
+            setPosition(left_elbow_pitch, normPitch);
             
-            float rightShoulderPitch = planeAngle(leftShoulder, rightShoulder, torso, rightShoulder, rightElbow);
+            float rightShoulderPitch = vc.planeAngle(leftShoulder, rightShoulder, torso, rightShoulder, rightElbow);
             if (rightElbow.y > rightShoulder.y) {
                 rightShoulderPitch = (float)Math.PI/2 - rightShoulderPitch;
             }
             
             normPitch = (2.3f-rightShoulderPitch)/2.6f;
-            parent.setPosition(right_shoulder_pitch, normPitch);
-            float rightShoulderRoll = planeAngle(neck, torso, origin, rightShoulder, rightElbow);
+            setPosition(right_shoulder_pitch, normPitch);
+            float rightShoulderRoll = vc.planeAngle(neck, torso, origin, rightShoulder, rightElbow);
             normRoll = (1.5f - rightShoulderRoll)/1.5f;
-            parent.setPosition(right_shoulder_roll, normRoll);
+           setPosition(right_shoulder_roll, normRoll);
             
             
-            float rightElbowPitch = vectorAngle(rightElbow, rightShoulder, rightHand);
+            float rightElbowPitch = vc.vectorAngle(rightElbow, rightShoulder, rightHand);
             
             normPitch = (float)(3 - rightElbowPitch) / (float)(Math.PI/2);
             setPosition(right_elbow_pitch, normPitch);
             Quaternion leftElbowOrientation = user.getSkeleton().getJoint(JointType.LEFT_ELBOW).getOrientation();
-            float angle = quatToAngle(leftElbowOrientation);
+            float angle = vc.quatToAngle(leftElbowOrientation);
             
             if (angle>Math.PI) {
                  angle = (float)(2 * Math.PI - angle);
@@ -96,13 +86,13 @@ public class MimicThread extends Thread {
             setPosition(left_elbow_yaw, normAngle);
             
              Quaternion rightElbowOrientation = user.getSkeleton().getJoint(JointType.RIGHT_ELBOW).getOrientation();
-            angle = quatToAngle(rightElbowOrientation);
+            angle = vc.quatToAngle(rightElbowOrientation);
                if (angle>Math.PI) {
                  angle = (float)(2 * Math.PI - angle);
              }
             normAngle = 1-angle/4.0f;
             setPosition(right_elbow_yaw, normAngle);
-         */   
+            
         }
     }
     

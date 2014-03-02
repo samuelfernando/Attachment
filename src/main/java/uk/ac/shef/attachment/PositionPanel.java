@@ -31,8 +31,8 @@ public class PositionPanel extends Component {
        g.setColor(Color.white);
        g.setFont(font);
        g.drawString(text, 0,200);
-       String out = "z = "+vel.z;
-       g.drawString(out, 0, 300);
+       //String out = "z = "+vel.z;
+       //g.drawString(out, 0, 300);
         /* g.setColor(Color.white);
         
        
@@ -46,4 +46,6 @@ public class PositionPanel extends Component {
     void setText(String text) {
         this.text = text;
     }
+
+   
 }

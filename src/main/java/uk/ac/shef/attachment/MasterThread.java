@@ -4,6 +4,8 @@
  */
 package uk.ac.shef.attachment;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.robokind.api.motion.messaging.RemoteRobot;
 
 /**
@@ -11,8 +13,28 @@ import org.robokind.api.motion.messaging.RemoteRobot;
  * @author samf
  */
 class MasterThread {
-
+    Set<ServantThread> tasks;
     public MasterThread(MyUserRecord userRec, RemoteRobot myRobot) {
+        // run tasks
+        tasks = new HashSet<ServantThread>();
     }
+
+    void add(ServantThread servant) {
+        tasks.add(servant);
+    }
+
+    void start() {
+        for (ServantThread task : tasks) {
+            task.start();
+        }
+    }
+
+    void end() {
+        for (ServantThread task : tasks) {
+            task.end();
+        }
+    }
+    
+    
     
 }

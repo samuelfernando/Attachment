@@ -38,14 +38,12 @@ public class Attachment  {
     JointId neck_pitch;
     VectorCalc vc;
     EventTracker et;
-    HashMap<Short, MyUserRecord> currentVisitors;
     UserTracking userTracking;
+    
     MasterThread masterThread;
-    MimicThread mimicThread;
-    HeadTrackThread headTrackThread;
     Animation ehoh;
     Animation byebye;
-    
+    HashMap<Short, MyUserRecord> currentVisitors;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
   
@@ -90,77 +88,20 @@ public class Attachment  {
 
     }
       
-    void playSound(String filename) {
-        try {
-            
-            File file = new File(filename+".wav");
-            AudioInputStream stream;
-            AudioFormat format;
-            DataLine.Info info;
-            Clip clip;
-
-            stream = AudioSystem.getAudioInputStream(file);
-            format = stream.getFormat();
-            info = new DataLine.Info(Clip.class, format);
-            clip = (Clip) AudioSystem.getLine(info);
-            clip.open(stream);
-            clip.start();
-        } catch (Exception ex) {
-            Logger.getLogger(Attachment.class.getName()).log(Level.SEVERE, null, ex);
-        } 
-    }
+    
     
     boolean userStillActive(short id) {
         UserData user = userTracking.getLastFrame().getUserById(id);
         return (user!=null);
     }
 
-    void userUpdate(short id, String type) {
-        MyUserRecord userRecord = currentVisitors.get(id);
-        if (type.equals("greet")) {
-            userRecord.greeted = true;
-        }
-        else if (type.equals("bye")) {
-            userRecord.farewelled = true;
-        }
-        currentVisitors.put(id, userRecord);
-    }
+    
     void commence(ZenoAction action) {
-        if (action.type.equals("greet")) {
-            positionPanel.setText("Greetings visitor "+action.id);
-            playSound("eh-oh");
-            userUpdate(action.id, "greet");
-            positionPanel.repaint();
-        }
-        else if (action.type.equals("bye")) {
-            positionPanel.setText("Bye visitor "+action.id);
-            playSound("bye-bye");
-            userUpdate(action.id, "bye");
-            positionPanel.repaint();
-        }
-        else if (action.type.equals("mimic+headTrack")) {
-            MyUserRecord userRec = this.currentVisitors.get(action.id);
-            masterThread = new MasterThread(userRec, myRobot);
-            mimicThread = new MimicThread(masterThread);
-            headTrackThread = new HeadTrackThread(masterThread);
-            headTrackThread.start();
-            mimicThread.start();
-        }
+        action.commence();
     }
     
     void conclude(ZenoAction action) {
-        if (action.type.equals("greet")) {
-            positionPanel.setText("Finished greeting visitor "+action.id);
-            positionPanel.repaint();
-        }
-        else if (action.type.equals("bye")) {
-            positionPanel.setText("Finished bye visitor "+action.id);
-            positionPanel.repaint();
-        }
-        else if (action.type.equals("mimic+headTrack")) {
-            headTrackThread.end();
-            mimicThread.end();
-        }
+        action.conclude();
     }
     
     boolean check(short id, String type) {
@@ -186,7 +127,7 @@ public class Attachment  {
                         // new visitor
                        // System.out.println("length = "+ehoh.getLength());
 
-                       ZenoAction greet = new ZenoAction("greet", id, ehoh.getLength());
+                       ZenoAction greet = new HelloAction(this, "greet", id, ehoh.getLength());
                        MyUserRecord rec = new MyUserRecord(user);
                        
                        
@@ -200,11 +141,11 @@ public class Attachment  {
                     float threshold = 100.0f;
                     if (vel.z>threshold && !check(id, "farewell")) { 
                         System.out.println("Bye bye");
-                        ZenoAction bye = new ZenoAction("bye", id, byebye.getLength());
+                        ZenoAction bye = new ByeAction(this,"bye", id, byebye.getLength());
                         et.push(bye);
                     }
                     else {
-                        ZenoAction mimicAndHeadTrack = new ZenoAction("mimic+headTrack", id, 10000);
+                        ZenoAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 10000);
                         et.push(mimicAndHeadTrack);
                     }
                     et.updated();
