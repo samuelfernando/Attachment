@@ -19,6 +19,8 @@ public class EventTracker {
    ZenoAction currentAction;
    boolean busy;
    long currentTaskEndTime;
+   long timeSinceLastUpdate;
+   
    
    public EventTracker(Attachment parent) {
         actions = new Stack<ZenoAction>();
@@ -26,7 +28,13 @@ public class EventTracker {
         busy = false;
    }
   
-    
+   long getTimeSinceLastUpdate() { 
+       return timeNow()-timeSinceLastUpdate;
+   }
+   
+   void updated() {
+       timeSinceLastUpdate = timeNow();
+   }
     void start() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         Runnable toRun = new Runnable() {
@@ -51,16 +59,24 @@ public class EventTracker {
         }
         if (!busy) {
             if (!actions.isEmpty()) {
-                currentAction = actions.pop();
-                currentTaskEndTime = timeNow() + currentAction.duration;
-                parent.commence(currentAction);
-                busy = true;
+                boolean userStillActive = false;
+                while (!userStillActive && !actions.isEmpty()) {
+                    currentAction = actions.pop();
+                    userStillActive = parent.userStillActive(currentAction.id);
+                    currentTaskEndTime = timeNow() + currentAction.duration;
+                    parent.commence(currentAction);
+                    busy = true;
+                }
             }
         }
     }
 
     void push(ZenoAction greet) {
         actions.push(greet);
+    }
+
+    long timeSinceLastUpdate() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

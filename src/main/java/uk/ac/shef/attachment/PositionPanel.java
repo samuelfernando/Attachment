@@ -30,7 +30,9 @@ public class PositionPanel extends Component {
         g.fillRect(0,0,this.getWidth(), this.getHeight());
        g.setColor(Color.white);
        g.setFont(font);
-       g.drawString(text, 400, 400);
+       g.drawString(text, 0,200);
+       String out = "z = "+vel.z;
+       g.drawString(out, 0, 300);
         /* g.setColor(Color.white);
         
        

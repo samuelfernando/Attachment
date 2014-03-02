@@ -3,12 +3,23 @@ package uk.ac.shef.attachment;
 
 import com.primesense.nite.*;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JLabel;
+import javax.vecmath.Vector3f;
 import org.robokind.api.animation.Animation;
 import org.robokind.api.motion.Robot.JointId;
 import org.robokind.api.motion.Robot.RobotPositionMap;
@@ -27,10 +38,13 @@ public class Attachment  {
     JointId neck_pitch;
     VectorCalc vc;
     EventTracker et;
-    HashMap<Short, Skeleton> currentVisitors;
+    HashMap<Short, MyUserRecord> currentVisitors;
     UserTracking userTracking;
-    
+    MasterThread masterThread;
+    MimicThread mimicThread;
+    HeadTrackThread headTrackThread;
     Animation ehoh;
+    Animation byebye;
     
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
@@ -61,7 +75,9 @@ public class Attachment  {
             
             // this.positionLabel = positionLabel;
             ehoh = Robokind.loadAnimation("animations/eh-oh-2.xml");
-            currentVisitors = new HashMap<Short, Skeleton>();
+            byebye = Robokind.loadAnimation("animations/byebye.xml");
+            
+            currentVisitors = new HashMap<Short, MyUserRecord>();
             this.positionPanel = positionPanel;
             df = new DecimalFormat("#.##");
             userTracking = new UserTracking(tracker, this); 
@@ -73,42 +89,130 @@ public class Attachment  {
         }
 
     }
-    
       
+    void playSound(String filename) {
+        try {
+            
+            File file = new File(filename+".wav");
+            AudioInputStream stream;
+            AudioFormat format;
+            DataLine.Info info;
+            Clip clip;
 
+            stream = AudioSystem.getAudioInputStream(file);
+            format = stream.getFormat();
+            info = new DataLine.Info(Clip.class, format);
+            clip = (Clip) AudioSystem.getLine(info);
+            clip.open(stream);
+            clip.start();
+        } catch (Exception ex) {
+            Logger.getLogger(Attachment.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+    }
+    
+    boolean userStillActive(short id) {
+        UserData user = userTracking.getLastFrame().getUserById(id);
+        return (user!=null);
+    }
+
+    void userUpdate(short id, String type) {
+        MyUserRecord userRecord = currentVisitors.get(id);
+        if (type.equals("greet")) {
+            userRecord.greeted = true;
+        }
+        else if (type.equals("bye")) {
+            userRecord.farewelled = true;
+        }
+        currentVisitors.put(id, userRecord);
+    }
     void commence(ZenoAction action) {
-        positionPanel.setText("Greetings visitor "+action.id);
-        positionPanel.repaint();
+        if (action.type.equals("greet")) {
+            positionPanel.setText("Greetings visitor "+action.id);
+            playSound("eh-oh");
+            userUpdate(action.id, "greet");
+            positionPanel.repaint();
+        }
+        else if (action.type.equals("bye")) {
+            positionPanel.setText("Bye visitor "+action.id);
+            playSound("bye-bye");
+            userUpdate(action.id, "bye");
+            positionPanel.repaint();
+        }
+        else if (action.type.equals("mimic+headTrack")) {
+            MyUserRecord userRec = this.currentVisitors.get(action.id);
+            masterThread = new MasterThread(userRec, myRobot);
+            mimicThread = new MimicThread(masterThread);
+            headTrackThread = new HeadTrackThread(masterThread);
+            headTrackThread.start();
+            mimicThread.start();
+        }
     }
     
     void conclude(ZenoAction action) {
-        positionPanel.setText("Waiting");
-        positionPanel.repaint();
+        if (action.type.equals("greet")) {
+            positionPanel.setText("Finished greeting visitor "+action.id);
+            positionPanel.repaint();
+        }
+        else if (action.type.equals("bye")) {
+            positionPanel.setText("Finished bye visitor "+action.id);
+            positionPanel.repaint();
+        }
+        else if (action.type.equals("mimic+headTrack")) {
+            headTrackThread.end();
+            mimicThread.end();
+        }
+    }
+    
+    boolean check(short id, String type) {
+        MyUserRecord rec = currentVisitors.get(id);
+        if (type.equals("farewell")) {
+            return rec.farewelled;
+        }
+        else if (type.equals("greeted")) {
+            return rec.greeted;
+        }
+        return false;
     }
     
     void sensorMotors() {
        //float timeSince = et.timeSinceLastUpdate();
          for (UserData user : userTracking.getLastFrame().getUsers()) {
             if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
-                short id = user.getId();
-                if (!currentVisitors.containsKey(id)) {
-                    // new visitor
-                   // System.out.println("length = "+ehoh.getLength());
-                    
-                   ZenoAction greet = new ZenoAction("Greet", id, ehoh.getLength());
-                    
-                   et.push(greet);
-                   currentVisitors.put(id, user.getSkeleton());
+                long timeSince = et.getTimeSinceLastUpdate();
+                
+                if (timeSince>200) {
+                    short id = user.getId();
+                    if (!currentVisitors.containsKey(id)) {
+                        // new visitor
+                       // System.out.println("length = "+ehoh.getLength());
+
+                       ZenoAction greet = new ZenoAction("greet", id, ehoh.getLength());
+                       MyUserRecord rec = new MyUserRecord(user);
+                       
+                       
+                       currentVisitors.put(id, rec);
+                       et.push(greet);
+                       
+                    }
+                    Vector3f vel = userTracking.userVel(user);
+                    positionPanel.vel = vel;
+                    positionPanel.repaint();
+                    float threshold = 100.0f;
+                    if (vel.z>threshold && !check(id, "farewell")) { 
+                        System.out.println("Bye bye");
+                        ZenoAction bye = new ZenoAction("bye", id, byebye.getLength());
+                        et.push(bye);
+                    }
+                    else {
+                        ZenoAction mimicAndHeadTrack = new ZenoAction("mimic+headTrack", id, 10000);
+                        et.push(mimicAndHeadTrack);
+                    }
+                    et.updated();
                 }
-                //if (timeSince>200) {
-                    //Vector3f vel = userTracking.userVel(user);
-                    //positionPanel.vel = vel;
-                    //positionPanel.repaint();
-                    //et.updateTime();
-                //}
             }
-         }
-    }
+        }
+     }
+}
 /*
     void oldSensorMotors() {
         HashMap<Short, Float> speeds = new HashMap<Short, Float>();
@@ -204,5 +308,5 @@ public class Attachment  {
    
 
     
-}
+
 

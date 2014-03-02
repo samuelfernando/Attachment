@@ -8,6 +8,11 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 
 /**
  *
@@ -37,12 +42,32 @@ public class UDPTest {
     void close() {
            socket.close();
     }
+    void playSound() {
+        try {
+            File file = new File("eh-oh.wav");
+            AudioInputStream stream;
+            AudioFormat format;
+            DataLine.Info info;
+            Clip clip;
+
+            stream = AudioSystem.getAudioInputStream(file);
+            format = stream.getFormat();
+            info = new DataLine.Info(Clip.class, format);
+            clip = (Clip) AudioSystem.getLine(info);
+            clip.open(stream);
+            clip.start();
+            Thread.sleep(5000);
+        } catch (Exception ex) {
+            Logger.getLogger(Attachment.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+    }
+   
     public static void main(String args[]) {
        try{
             //DatagramSocket socket = new DatagramSocket(9999, InetAddress.getByName("192.168.0.101"));
            UDPTest test = new UDPTest();
-           test.send("eh-oh");
-           
+           //test.send("eh-oh");
+           test.playSound();
            //test.send("neutral-wonder");
            //test.send("neutral-laugh");
            //test.send("bye-bye");
