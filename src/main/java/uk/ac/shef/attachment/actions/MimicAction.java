@@ -24,9 +24,9 @@ public class MimicAction extends ZenoAction {
         MyUserRecord userRec;
         userRec = parent.currentVisitors.get(id);
         parent.masterThread = new MasterThread(parent, userRec);
-        //MimicThread mimicThread = new MimicThread();
+        MimicThread mimicThread = new MimicThread();
         HeadTrackThread headTrackThread = new HeadTrackThread();
-        //parent.masterThread.add(mimicThread);
+        parent.masterThread.add(mimicThread);
         parent.masterThread.add(headTrackThread);
         parent.masterThread.start(); 
         parent.positionPanel.setText("Head Track user  "+id);

@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.util.HashMap;
 import javax.vecmath.Vector3f;
 
 /**
@@ -20,10 +21,12 @@ public class PositionPanel extends Component {
     String text;
     Font font;
     long endTime;
+    HashMap<String, Float> vars;
     public PositionPanel() {
         vel = new Vector3f();
         font = new Font("Serif", Font.PLAIN, 36);
         text = "waiting";
+        vars = new HashMap<String, Float>();
     }
     
     public void setTimer(long time) {
@@ -39,6 +42,13 @@ public class PositionPanel extends Component {
        
        String out = "timeRemaining = "+(endTime-System.currentTimeMillis());
        g.drawString(out, 0, 300);
+       int count = 0;
+       for (String key : vars.keySet()) {
+           float val = vars.get(key);
+           out = key+" "+val;
+           g.drawString(out, 0, 350+count*50);
+           ++count;
+       }
         /* g.setColor(Color.white);
         
        
@@ -51,6 +61,10 @@ public class PositionPanel extends Component {
     }
     public void setText(String text) {
         this.text = text;
+    }
+    
+    public void setVar(String key, float val) {
+        vars.put(key, val);
     }
 
    

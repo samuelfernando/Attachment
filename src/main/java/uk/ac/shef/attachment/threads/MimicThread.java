@@ -6,12 +6,14 @@ package uk.ac.shef.attachment.threads;
 
 import com.primesense.nite.JointType;
 import com.primesense.nite.Quaternion;
+import com.primesense.nite.SkeletonState;
 import com.primesense.nite.UserData;
 import javax.vecmath.Point3f;
 import org.robokind.api.motion.Joint;
 import org.robokind.api.motion.Robot.JointId;
 import uk.ac.shef.attachment.utils.VectorCalc;
 import static org.robokind.client.basic.RobotJoints.*;
+import uk.ac.shef.attachment.MyUserRecord;
 
 /**
  *
@@ -28,6 +30,7 @@ public class MimicThread extends ServantThread {
     JointId right_shoulder_roll;
     JointId right_elbow_pitch;
     VectorCalc vc;
+    
 
     public MimicThread() {
        vc = new VectorCalc();
@@ -50,8 +53,11 @@ public class MimicThread extends ServantThread {
     }
     @Override
     public void runChecked() {
-        UserData user = master.userRec.userData;
-        while (shouldRun) {
+             MyUserRecord userRec = master.parent.currentVisitors.get(master.userRec.userData.getId());
+        UserData user = userRec.userData;
+   
+       // UserData user = master.userRec.userData;
+       if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
             Point3f leftShoulder = vc.convertPoint(user.getSkeleton().getJoint(JointType.LEFT_SHOULDER).getPosition());
             Point3f rightShoulder = vc.convertPoint(user.getSkeleton().getJoint(JointType.RIGHT_SHOULDER).getPosition());
             Point3f torso = vc.convertPoint(user.getSkeleton().getJoint(JointType.TORSO).getPosition());
@@ -61,6 +67,10 @@ public class MimicThread extends ServantThread {
             Point3f neck = vc.convertPoint(user.getSkeleton().getJoint(JointType.NECK).getPosition());
             Point3f rightHand = vc.convertPoint(user.getSkeleton().getJoint(JointType.RIGHT_HAND).getPosition());
             Point3f origin = new Point3f();
+            
+            //leftShoulder.add(zenoPos);
+            
+            
             float leftShoulderPitch = vc.planeAngle(leftShoulder, rightShoulder, torso, leftShoulder, leftElbow);
             if (leftElbow.y > leftShoulder.y) {
                 leftShoulderPitch = (float) Math.PI / 2 - leftShoulderPitch;
@@ -110,9 +120,9 @@ public class MimicThread extends ServantThread {
             }
             normAngle = 1 - angle / 4.0f;
             setPosition(right_elbow_yaw, normAngle);
-
-        }
-    }
+       }
+     }
+    
 
     void end() {
         this.shouldRun = false;
