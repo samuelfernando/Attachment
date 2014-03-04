@@ -12,8 +12,8 @@ import com.primesense.nite.UserData;
  */
 public class MyUserRecord {
     public UserData userData;
-    boolean greeted=false;
-    boolean farewelled=false;
+    public boolean greeted=false;
+    public boolean farewelled=false;
     public MyUserRecord(UserData userData) {
         this.userData = userData;
     }

@@ -1,4 +1,4 @@
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

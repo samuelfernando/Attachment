@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.utils;
 
 import com.primesense.nite.UserData;
 
@@ -10,7 +10,7 @@ import com.primesense.nite.UserData;
  *
  * @author zeno
  */
-class UserSpeed {
-    UserData user;
-    float speed;
+public class UserSpeed {
+    public UserData user;
+    public float speed;
 }

@@ -2,11 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.actions;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
@@ -14,12 +13,16 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
+import org.robokind.api.motion.messaging.RemoteRobot;
+import uk.ac.shef.attachment.Attachment;
+import uk.ac.shef.attachment.MyUserRecord;
+import uk.ac.shef.attachment.PositionPanel;
 
 /**
  *
  * @author samf
  */
-abstract class ZenoAction {
+public abstract class ZenoAction {
    
     String type;
    short id;
@@ -28,15 +31,23 @@ abstract class ZenoAction {
    PositionPanel panel;
    Attachment parent;
     DecimalFormat df;
+    RemoteRobot myRobot;
    public ZenoAction(Attachment parent, String type, short id, long duration) {
        this.parent = parent;
        this.type = type;
        this.id = id;
        this.duration = duration;
+       this.myRobot = parent.myRobot;
        df = new DecimalFormat("#.##");
        //this.startTime = System.currentTimeMillis();
    }
+   public long getDuration() {
+       return duration;
+   }
    
+   public short getId() {
+       return id;
+   }
    void userUpdate(short id, String type) {
         MyUserRecord userRecord = parent.currentVisitors.get(id);
         if (type.equals("greet")) {
@@ -70,8 +81,8 @@ abstract class ZenoAction {
             Logger.getLogger(Attachment.class.getName()).log(Level.SEVERE, null, ex);
         } 
     }
-   abstract void commence();
-   abstract void conclude();
+   public abstract void commence();
+   public abstract void conclude();
 }
 
  

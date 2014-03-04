@@ -4,6 +4,8 @@
  */
 package uk.ac.shef.attachment;
 
+import uk.ac.shef.attachment.utils.UserSpeed;
+import uk.ac.shef.attachment.utils.VectorCalc;
 import com.primesense.nite.JointType;
 import com.primesense.nite.Skeleton;
 import com.primesense.nite.SkeletonJoint;

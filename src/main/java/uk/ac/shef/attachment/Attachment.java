@@ -1,6 +1,12 @@
 package uk.ac.shef.attachment;
 
 
+import uk.ac.shef.attachment.utils.VectorCalc;
+import uk.ac.shef.attachment.actions.MimicAction;
+import uk.ac.shef.attachment.actions.ZenoAction;
+import uk.ac.shef.attachment.actions.ByeAction;
+import uk.ac.shef.attachment.actions.HelloAction;
+import uk.ac.shef.attachment.threads.MasterThread;
 import com.primesense.nite.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,22 +34,21 @@ import org.robokind.client.basic.Robokind;
 
 
 public class Attachment  {
-    RemoteRobot myRobot;
+    public RemoteRobot myRobot;
     RobotPositionMap myGoalPositions;
     PrintStream out;
-    JLabel positionLabel;
     DecimalFormat df;
-    PositionPanel positionPanel;  
+    public PositionPanel positionPanel;  
     JointId neck_yaw;
     JointId neck_pitch;
     VectorCalc vc;
-    EventTracker et;
+    public EventTracker et;
     UserTracking userTracking;
     
-    MasterThread masterThread;
+    public MasterThread masterThread;
     Animation ehoh;
     Animation byebye;
-    HashMap<Short, MyUserRecord> currentVisitors;
+    public HashMap<Short, MyUserRecord> currentVisitors;
     HashMap<Short, Boolean> isDueToMimic;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
@@ -90,6 +95,12 @@ public class Attachment  {
     }
       
     
+   
+    
+  
+    public PositionPanel getPositionPanel() {
+        return positionPanel;
+    }
     
     boolean userStillActive(short id) {
         // Need a better idea of what the 

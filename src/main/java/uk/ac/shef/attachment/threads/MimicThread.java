@@ -2,21 +2,22 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.threads;
 
 import com.primesense.nite.JointType;
 import com.primesense.nite.Quaternion;
 import com.primesense.nite.UserData;
 import javax.vecmath.Point3f;
+import org.robokind.api.motion.Joint;
 import org.robokind.api.motion.Robot.JointId;
-import org.robokind.api.motion.messaging.RemoteRobot;
+import uk.ac.shef.attachment.utils.VectorCalc;
+import static org.robokind.client.basic.RobotJoints.*;
 
 /**
  *
  * @author samf
  */
 public class MimicThread extends ServantThread {
-    RemoteRobot myRobot;
     JointId left_shoulder_pitch;
     JointId left_shoulder_roll;
     JointId left_elbow_pitch;
@@ -28,7 +29,17 @@ public class MimicThread extends ServantThread {
     VectorCalc vc;
     
    
-    
+    public MimicThread() {
+     left_shoulder_pitch = new JointId(myRobot.getRobotId(), new Joint.Id(LEFT_SHOULDER_PITCH)); 
+     left_shoulder_roll = new JointId(myRobot.getRobotId(), new Joint.Id(LEFT_SHOULDER_ROLL));
+     left_elbow_pitch = new JointId(myRobot.getRobotId(), new Joint.Id(LEFT_ELBOW_PITCH));
+    right_elbow_yaw = new JointId(myRobot.getRobotId(), new Joint.Id(RIGHT_ELBOW_YAW));
+    left_elbow_yaw = new JointId(myRobot.getRobotId(), new Joint.Id(LEFT_ELBOW_YAW));
+     right_shoulder_pitch = new JointId(myRobot.getRobotId(), new Joint.Id(RIGHT_SHOULDER_PITCH));
+     right_shoulder_roll = new JointId(myRobot.getRobotId(), new Joint.Id(RIGHT_SHOULDER_ROLL));
+     right_elbow_pitch = new JointId(myRobot.getRobotId(), new Joint.Id(RIGHT_ELBOW_PITCH));
+     vc = new VectorCalc();
+    }
     
     @Override
     public void runChecked() {

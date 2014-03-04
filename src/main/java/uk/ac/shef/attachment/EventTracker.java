@@ -4,8 +4,8 @@
  */
 package uk.ac.shef.attachment;
 
+import uk.ac.shef.attachment.actions.ZenoAction;
 import java.util.Queue;
-import java.util.Stack;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,9 +18,9 @@ import java.util.concurrent.TimeUnit;
 public class EventTracker {
    Attachment parent;
    Queue<ZenoAction> actions;
-   ZenoAction currentAction;
+   public ZenoAction currentAction;
    boolean busy;
-   long currentTaskEndTime;
+   public long currentTaskEndTime;
    long timeSinceLastUpdate;
    ScheduledExecutorService scheduler;
    Runnable toRun;
@@ -55,7 +55,7 @@ public class EventTracker {
         scheduler.scheduleAtFixedRate(toRun, 0, 200, TimeUnit.MILLISECONDS);
     }
     
-    long timeNow() {
+    public long timeNow() {
         return System.currentTimeMillis();
     }
     
@@ -68,28 +68,20 @@ public class EventTracker {
     }
     
     void maintainStack() {
-        //System.out.println("maintain Stack");
         if (busy) {
-            //System.out.println("busy");
             if (timeNow()>currentTaskEndTime) {
-               // System.out.println("concluding action now "+ timeNow() + " end "+currentTaskEndTime);
             
                 parent.conclude(currentAction);
                 busy = false;
             }
         }
         if (!busy) {
-           //System.out.println("not busy");
 
             if (!actions.isEmpty()) {
-                //System.out.println("running action");
                 currentAction = actions.remove();
-                boolean userStillActive = parent.userStillActive(currentAction.id);
-                //System.out.println("id = "+currentAction.id);
+                boolean userStillActive = parent.userStillActive(currentAction.getId());
                 if (userStillActive) {
-                    //System.out.println("User active");
-                    currentTaskEndTime = timeNow() + currentAction.duration;
-                    //System.out.println("commencing action now "+ timeNow() + " end "+currentTaskEndTime);
+                    currentTaskEndTime = timeNow() + currentAction.getDuration();
 
                     parent.commence(currentAction);
                     busy = true;
@@ -99,7 +91,6 @@ public class EventTracker {
     }
 
     void push(ZenoAction action) {
-        //System.out.println("action "+action.type+ " added");
         actions.add(action);
     }
 

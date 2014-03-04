@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.tests;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -13,6 +13,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
+import uk.ac.shef.attachment.Attachment;
 
 /**
  *
@@ -66,8 +67,8 @@ public class UDPTest {
        try{
             //DatagramSocket socket = new DatagramSocket(9999, InetAddress.getByName("192.168.0.101"));
            UDPTest test = new UDPTest();
-           test.send("eh-oh");
-           //test.playSound();
+           //test.send("eh-oh");
+           test.playSound();
            //test.send("neutral-wonder");
            //test.send("neutral-laugh");
            //test.send("bye-bye");

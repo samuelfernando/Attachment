@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.utils;
 
 import com.primesense.nite.Quaternion;
 import javax.vecmath.AxisAngle4f;
@@ -15,7 +15,7 @@ import javax.vecmath.Vector3f;
  * @author zeno
  */
 public class VectorCalc {
-    Point3f convertPoint(com.primesense.nite.Point3D<Float> p) {
+    public Point3f convertPoint(com.primesense.nite.Point3D<Float> p) {
         Point3f point = new Point3f();
         point.x = p.getX();
         point.y = p.getY();
@@ -23,7 +23,7 @@ public class VectorCalc {
         return point;
     }
 
-    float planeAngle(Point3f a, Point3f b, Point3f c, Point3f d, Point3f e) {
+    public float planeAngle(Point3f a, Point3f b, Point3f c, Point3f d, Point3f e) {
 
 
         Vector3f vec1 = new Vector3f();
@@ -44,7 +44,7 @@ public class VectorCalc {
 
     }
 
-    float vectorAngle(Point3f a, Point3f b, Point3f c) {
+    public float vectorAngle(Point3f a, Point3f b, Point3f c) {
         Vector3f vec1 = new Vector3f();
         vec1.sub(b, a);
 
@@ -56,7 +56,7 @@ public class VectorCalc {
 
     }
 
-    float quatToAngle(Quaternion q) {
+    public float quatToAngle(Quaternion q) {
         Quat4f qv = new Quat4f();
         qv.x = q.getX();
         qv.y = q.getY();

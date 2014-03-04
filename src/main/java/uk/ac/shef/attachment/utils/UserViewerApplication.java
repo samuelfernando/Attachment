@@ -1,5 +1,6 @@
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.utils;
 
+import uk.ac.shef.attachment.utils.UserViewer;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;

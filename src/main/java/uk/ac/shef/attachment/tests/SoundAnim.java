@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.tests;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.DatagramPacket;
@@ -10,12 +10,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import org.robokind.api.animation.Animation;
 import org.robokind.api.animation.messaging.RemoteAnimationPlayerClient;
-import org.robokind.api.motion.Robot;
 import org.robokind.api.motion.messaging.RemoteRobot;
 import org.robokind.client.basic.Robokind;
 import org.robokind.client.basic.UserSettings;
-
-
 
 /**
  *

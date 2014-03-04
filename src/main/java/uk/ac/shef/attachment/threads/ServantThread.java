@@ -2,11 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.shef.attachment;
+package uk.ac.shef.attachment.threads;
 
 import org.robokind.api.common.position.NormalizedDouble;
 import org.robokind.api.motion.Robot;
 import org.robokind.api.motion.messaging.RemoteRobot;
+import uk.ac.shef.attachment.MyUserRecord;
 
 /**
  *
@@ -15,13 +16,15 @@ import org.robokind.api.motion.messaging.RemoteRobot;
 abstract class ServantThread extends Thread {
     MasterThread master;
     boolean shouldRun = false;
+    RemoteRobot myRobot;
     Robot.RobotPositionHashMap myGoalPositions;
     MyUserRecord userRec;
-   
-    public void add(MasterThread master) {
+       
+    void setMaster(MasterThread master) {
+        this.myRobot = master.myRobot;
         this.master = master;
+        this.userRec = master.userRec;
     }
-    
     @Override
     public void run() {
         while (shouldRun) {

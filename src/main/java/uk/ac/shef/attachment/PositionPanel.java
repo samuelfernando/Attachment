@@ -43,7 +43,7 @@ public class PositionPanel extends Component {
             g.fillRect(400, 100, (int)(vel.z), 50);   
         }*/
     }
-    void setText(String text) {
+    public void setText(String text) {
         this.text = text;
     }
 
