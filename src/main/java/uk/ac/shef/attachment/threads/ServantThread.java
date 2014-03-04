@@ -5,8 +5,6 @@
 package uk.ac.shef.attachment.threads;
 
 import org.robokind.api.common.position.NormalizedDouble;
-import org.robokind.api.motion.Robot;
-import org.robokind.api.motion.messaging.RemoteRobot;
 import uk.ac.shef.attachment.MyUserRecord;
 
 /**
@@ -16,15 +14,9 @@ import uk.ac.shef.attachment.MyUserRecord;
 abstract class ServantThread extends Thread {
     MasterThread master;
     boolean shouldRun = false;
-    RemoteRobot myRobot;
-    Robot.RobotPositionHashMap myGoalPositions;
-    MyUserRecord userRec;
-       
     void setMaster(MasterThread master) {
-        this.myRobot = master.myRobot;
         this.master = master;
-        this.userRec = master.userRec;
-    }
+    }  
     @Override
     public void run() {
         while (shouldRun) {
@@ -39,7 +31,9 @@ abstract class ServantThread extends Thread {
         if (val > 1) {
             val = 1.0f;
         }
-        myGoalPositions.put(jointID, new NormalizedDouble(val));
+        if (master.parent.robotActive) {
+            master.parent.myGoalPositions.put(jointID, new NormalizedDouble(val));
+        }
     }
     abstract void runChecked();
 
@@ -51,8 +45,6 @@ abstract class ServantThread extends Thread {
     void end() {
         shouldRun = false;
     }
-    void setUser(MyUserRecord rec) {
-        this.userRec = rec;
-    }
+    
     
 }

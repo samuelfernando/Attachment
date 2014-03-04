@@ -12,10 +12,7 @@ import org.openni.OpenNI;
 
 import org.openni.*;
 import com.primesense.nite.*;
-import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
-import javax.swing.JLabel;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -81,13 +78,14 @@ public class AttachmentApplication {
         System.exit(0);
     }
 
+    
     public static void main(String s[]) {
         // initialize OpenNI and NiTE
     	OpenNI.initialize();
         NiTE.initialize();
         
         List<DeviceInfo> devicesInfo = OpenNI.enumerateDevices();
-        if (devicesInfo.size() == 0) {
+        if (devicesInfo.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No device is connected", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -95,6 +93,7 @@ public class AttachmentApplication {
         Device device = Device.open(devicesInfo.get(0).getUri());
         UserTracker tracker = UserTracker.create();
 
+            
         final AttachmentApplication app = new AttachmentApplication(tracker);
         app.run();
     }

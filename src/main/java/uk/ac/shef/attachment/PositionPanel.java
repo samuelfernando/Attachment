@@ -19,10 +19,15 @@ public class PositionPanel extends Component {
     Vector3f vel;
     String text;
     Font font;
+    long endTime;
     public PositionPanel() {
         vel = new Vector3f();
         font = new Font("Serif", Font.PLAIN, 36);
         text = "waiting";
+    }
+    
+    public void setTimer(long time) {
+        endTime = time;
     }
     @Override
     public void paint(Graphics g) {
@@ -31,8 +36,9 @@ public class PositionPanel extends Component {
        g.setColor(Color.white);
        g.setFont(font);
        g.drawString(text, 0,200);
-       //String out = "z = "+vel.z;
-       //g.drawString(out, 0, 300);
+       
+       String out = "timeRemaining = "+(endTime-System.currentTimeMillis());
+       g.drawString(out, 0, 300);
         /* g.setColor(Color.white);
         
        

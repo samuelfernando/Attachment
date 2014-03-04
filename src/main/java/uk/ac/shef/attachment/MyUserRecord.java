@@ -14,7 +14,16 @@ public class MyUserRecord {
     public UserData userData;
     public boolean greeted=false;
     public boolean farewelled=false;
+    public boolean scheduledForDeletion = false;
+    long timeForDeletion;
     public MyUserRecord(UserData userData) {
         this.userData = userData;
+    }
+    void scheduleForDeletion() {
+        scheduledForDeletion = true;
+        timeForDeletion = System.currentTimeMillis() + 5000;
+    }
+    void cancelDeletion() {
+        scheduledForDeletion = false;
     }
 }

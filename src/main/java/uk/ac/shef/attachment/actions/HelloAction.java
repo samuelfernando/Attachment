@@ -13,12 +13,13 @@ import uk.ac.shef.attachment.Attachment;
 public class HelloAction extends ZenoAction {
     public HelloAction(Attachment parent, String type, short id, long duration) {
         super(parent, type, id, duration);
+        priority = 1000;
     }
     public void commence() {
         //System.out.println("Hello action commenced");
         playSound("eh-oh");
-        userUpdate(id, "greet");
-        parent.getPositionPanel().setText("Greetings visitor "+timeRemaining() + " "+id); 
+        parent.getPositionPanel().setText("Greetings visitor "+id);
+        parent.getPositionPanel().setTimer(parent.et.currentTaskEndTime);
         parent.getPositionPanel().repaint();
     }
     public void conclude() {

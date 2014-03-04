@@ -13,11 +13,14 @@ import uk.ac.shef.attachment.Attachment;
 public class ByeAction extends ZenoAction {
     public ByeAction(Attachment parent, String type, short id, long duration) {
         super(parent, type, id, duration);
+        priority = 1000;
     }
     public void commence() {
-        userUpdate(id, "bye");
-        playSound("bye-bye");
-        parent.getPositionPanel().setText("Bye visitor "+timeRemaining() + " "+id);
+        System.out.println("bye bye");
+        
+        playSound("bye-bye2");
+        parent.getPositionPanel().setText("Bye visitor "+id);
+        parent.getPositionPanel().setTimer(parent.et.currentTaskEndTime);
         parent.getPositionPanel().repaint();
     }
     public void conclude() {

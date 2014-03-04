@@ -32,14 +32,17 @@ public abstract class ZenoAction {
    Attachment parent;
     DecimalFormat df;
     RemoteRobot myRobot;
+    public int priority=0;
    public ZenoAction(Attachment parent, String type, short id, long duration) {
        this.parent = parent;
        this.type = type;
        this.id = id;
        this.duration = duration;
-       this.myRobot = parent.myRobot;
        df = new DecimalFormat("#.##");
        //this.startTime = System.currentTimeMillis();
+   }
+   public String getType() {
+       return type;
    }
    public long getDuration() {
        return duration;
@@ -48,23 +51,14 @@ public abstract class ZenoAction {
    public short getId() {
        return id;
    }
-   void userUpdate(short id, String type) {
-        MyUserRecord userRecord = parent.currentVisitors.get(id);
-        if (type.equals("greet")) {
-            userRecord.greeted = true;
-        }
-        else if (type.equals("bye")) {
-            userRecord.farewelled = true;
-        }
-        parent.currentVisitors.put(id, userRecord);
-    }
+   
    long timeRemaining() {
        return parent.et.currentTaskEndTime - parent.et.timeNow();
    }
    void playSound(String filename) {
         try {
             
-            File file = new File(filename+".wav");
+            File file = new File("sounds/"+filename+".wav");
             AudioInputStream stream;
             AudioFormat format;
             DataLine.Info info;

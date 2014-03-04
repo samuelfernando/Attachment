@@ -4,6 +4,8 @@
  */
 package uk.ac.shef.attachment;
 
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import uk.ac.shef.attachment.actions.ZenoAction;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -17,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class EventTracker {
    Attachment parent;
-   Queue<ZenoAction> actions;
+   PriorityQueue<ZenoAction> actions;
    public ZenoAction currentAction;
    boolean busy;
    public long currentTaskEndTime;
@@ -26,7 +28,7 @@ public class EventTracker {
    Runnable toRun;
    
    public EventTracker(Attachment parent) {
-        actions = new ArrayBlockingQueue<ZenoAction>(10);
+        actions = new PriorityQueue<ZenoAction>(11, new ZenoActionComparator());
         toRun = new Runnable() {
             public void run() {
                 //System.out.println("running");
@@ -86,13 +88,25 @@ public class EventTracker {
                     parent.commence(currentAction);
                     busy = true;
                 }
+                else {
+                    System.out.println("Lost user "+currentAction.getId());
+                } 
             }
         }
     }
 
     void push(ZenoAction action) {
+        System.out.println("adding "+action.getType());
         actions.add(action);
+        System.out.println(actions);
     }
 
     
+}
+
+class ZenoActionComparator implements Comparator<ZenoAction>
+{
+    public int compare(ZenoAction o1, ZenoAction o2) {
+        return o2.priority-o1.priority;      
+    }
 }

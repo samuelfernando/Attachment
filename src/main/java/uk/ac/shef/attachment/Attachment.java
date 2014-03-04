@@ -8,34 +8,23 @@ import uk.ac.shef.attachment.actions.ByeAction;
 import uk.ac.shef.attachment.actions.HelloAction;
 import uk.ac.shef.attachment.threads.MasterThread;
 import com.primesense.nite.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.Stack;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.JLabel;
 import javax.vecmath.Vector3f;
 import org.robokind.api.animation.Animation;
 import org.robokind.api.motion.Robot.JointId;
 import org.robokind.api.motion.Robot.RobotPositionMap;
 import org.robokind.api.motion.messaging.RemoteRobot;
+import org.robokind.api.speech.messaging.RemoteSpeechServiceClient;
 import org.robokind.client.basic.Robokind;
+import org.robokind.client.basic.UserSettings;
+import uk.ac.shef.attachment.utils.ReadConfig;
 
 
 public class Attachment  {
     public RemoteRobot myRobot;
-    RobotPositionMap myGoalPositions;
+    public RobotPositionMap myGoalPositions;
     PrintStream out;
     DecimalFormat df;
     public PositionPanel positionPanel;  
@@ -44,38 +33,42 @@ public class Attachment  {
     VectorCalc vc;
     public EventTracker et;
     UserTracking userTracking;
-    
+    public boolean robotActive;
     public MasterThread masterThread;
     Animation ehoh;
     Animation byebye;
     public HashMap<Short, MyUserRecord> currentVisitors;
-    HashMap<Short, Boolean> isDueToMimic;
+    public HashMap<Short, Boolean> isDueToMimic;
+    RemoteSpeechServiceClient mySpeaker;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
   
-    String robotID = "myRobot";
         try {
-            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\samf\\Documents\\NetBeansProjects\\zeno-ip.txt"));
-            String robotIP = br.readLine();
+            //BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\samf\\Documents\\NetBeansProjects\\zeno-ip.txt"));
+            HashMap<String, String> configs = ReadConfig.readConfig();
+            robotActive = Boolean.parseBoolean(configs.get("robotActive"));
+            
+            if (robotActive) {
+                String robotIP = configs.get("ip");
+            
+                String robotID = "myRobot";
             
             // set respective addresses
             
-            /*
-            UserSettings.setRobotId(robotID);
-            UserSettings.setRobotAddress(robotIP);
-            UserSettings.setSpeechAddress(robotIP);
+            
+                UserSettings.setRobotId(robotID);
+                UserSettings.setRobotAddress(robotIP);
+                UserSettings.setSpeechAddress(robotIP);
                        
            
-            mySpeaker = Robokind.connectSpeechService();
+                mySpeaker = Robokind.connectSpeechService();
             
-            myRobot = Robokind.connectRobot();
-            myGoalPositions = new org.robokind.api.motion.Robot.RobotPositionHashMap();
-            myGoalPositions = myRobot.getDefaultPositions();
-            myRobot.move(myGoalPositions, 1000);
-            neck_yaw = new org.robokind.api.motion.Robot.JointId(myRobot.getRobotId(), new Joint.Id(NECK_YAW));
-            neck_pitch = new org.robokind.api.motion.Robot.JointId(myRobot.getRobotId(), new Joint.Id(NECK_PITCH));
-         
-            */
+                myRobot = Robokind.connectRobot();
+                myGoalPositions = new org.robokind.api.motion.Robot.RobotPositionHashMap();
+                myGoalPositions = myRobot.getDefaultPositions();
+                myRobot.move(myGoalPositions, 1000);
+                Thread.sleep(1000);
+            }
             
             // this.positionLabel = positionLabel;
             ehoh = Robokind.loadAnimation("animations/eh-oh-2.xml");
@@ -128,12 +121,43 @@ public class Attachment  {
         }
         return false;
     }
+    void userUpdate(short id, String type) {
+        MyUserRecord userRecord = currentVisitors.get(id);
+        if (type.equals("greet")) {
+            userRecord.greeted = true;
+        }
+        else if (type.equals("bye")) {
+            userRecord.farewelled = true;
+        }
+        else {
+            System.out.println("Wrong user update");
+            System.exit(1);
+        }
+        currentVisitors.put(id, userRecord);
+    }
     
     void sensorMotors() {
        //float timeSince = et.timeSinceLastUpdate();
-         for (UserData user : userTracking.getLastFrame().getUsers()) {
+        long timeSince = et.getTimeSinceLastUpdate();
+        if (timeSince>200) {
+            for (short id: currentVisitors.keySet()) {
+                if (userTracking.getLastFrame().getUserById(id) == null) {
+                    
+                    MyUserRecord userRec = currentVisitors.get(id);
+                    if (userRec.scheduledForDeletion) { 
+                        if (System.currentTimeMillis()>userRec.timeForDeletion) {
+                            currentVisitors.remove(id);
+                        }
+                    }
+                    else {
+                        userRec.scheduleForDeletion();
+                    }
+                }
+            }
+        }
+        
+        for (UserData user : userTracking.getLastFrame().getUsers()) {
             if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
-                long timeSince = et.getTimeSinceLastUpdate();
                 
                 if (timeSince>200) {
                     
@@ -146,18 +170,25 @@ public class Attachment  {
                        HelloAction greet = new HelloAction(this, "greet", id, ehoh.getLength());
                        MyUserRecord rec = new MyUserRecord(user);
                        
-                       
                        currentVisitors.put(id, rec);
+                       userUpdate(id, "greet");
+                       
                        et.push(greet);
                        
+                    
+                    } else {
+                        MyUserRecord rec = currentVisitors.get(id);
+                        rec.cancelDeletion();
                     }
                     Vector3f vel = userTracking.userVel(user);
                     //positionPanel.vel = vel;
                     //positionPanel.repaint();
                     float threshold = 100.0f;
-                    if (vel.z>threshold && !check(id, "farewell")) { 
+                   // if (vel.z>threshold && !check(id, "farewell")) { 
+                     if (vel.z>threshold && !check(id, "farewell")) { 
                         //System.out.println("Bye bye");
                         ByeAction bye = new ByeAction(this,"bye", id, byebye.getLength());
+                        userUpdate(id, "bye");
                         et.push(bye);
                     }
                     else {
@@ -170,6 +201,12 @@ public class Attachment  {
                         //}
                     }
                     et.updated();
+                    positionPanel.repaint();
+                    if (robotActive) {
+                        myRobot.move(myGoalPositions, 200);
+                    }
+                    
+                    
                 }
             }
         }
@@ -184,100 +221,3 @@ boolean dueToMimic(short id) {
     return result;
 }
 }
-/*
-    void oldSensorMotors() {
-        HashMap<Short, Float> speeds = new HashMap<Short, Float>();
-        float timeSince = et.timeSinceLastUpdate();
-         for (UserData user : userTracking.getLastFrame().getUsers()) {
-            if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
-                if (timeSince>200) {
-                    float speed = userTracking.findDist(user)/timeSince;
-                    speeds.put(user.getId(), speed);
-                }
-            }
-         }
-        
-        if (timeSince>200) {
-            if (et.timeSinceChangeUser()>3000) {
-                UserSpeed userSpeed = userTracking.findFastestUser(speeds);
-                UserData fastestUser = userSpeed.user;
-                float maxSpeed = userSpeed.speed;
-                if (fastestUser!=null && timeSince>200) {
-                    headTrack(fastestUser, maxSpeed);
-                    //positionLabel.setText("id "+fastestUser.getId()+" speed "+ df.format(maxSpeed));             
-                    prevUserTrack = fastestUser.getId();
-                }
-                et.lastChangeUser = System.currentTimeMillis();
-               
-            }
-            else {
-                if (speeds.keySet().contains(prevUserTrack)) {
-                    float speed = speeds.get(prevUserTrack);
-                    headTrack(userTracking.getLastFrame().getUserById(prevUserTrack), speed);
-                   //positionLabel.setText("id "+prevUserTrack+" speed "+ df.format(speed));  
-                } else {
-                    UserSpeed userSpeed = userTracking.findFastestUser(speeds);
-                    UserData fastestUser = userSpeed.user;
-                    float maxSpeed = userSpeed.speed;
-                    if (fastestUser!=null && timeSince>200) {
-                        headTrack(fastestUser, maxSpeed);
-                       // positionLabel.setText("id "+fastestUser.getId()+" speed "+ df.format(maxSpeed));             
-                        prevUserTrack = fastestUser.getId();
-                    }
-                    et.lastChangeUser = System.currentTimeMillis();
-                }
-            }
-            
-        }
-    }
-    private void headTrack(UserData user, float speed) {
-
-        if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
-  
-            Point3f head = vc.convertPoint(user.getSkeleton().getJoint(JointType.HEAD).getPosition());
-
-            Point3f orig = new Point3f(0, 0, 0);
-
-            Point3f center_head = new Point3f(0, 270, 2100);
-            Point3f center_feet = new Point3f(0, -270, 2100);
-            float yawA, pitchA;
-            float angle;
-            yawA = angle = vc.planeAngle(orig, center_head, center_feet, orig, head);
-            angle = (float) Math.cos(angle) * 0.7f + 0.6f;
-            setPosition(neck_yaw, angle);
-            Point3f zeno_head = new Point3f(0, -100, 0);
-            Point3f zeno_level = new Point3f(100, -100, 0);
-            Point3f zeno_level2 = new Point3f(0, -100, 100);
-
-            pitchA = angle = vc.planeAngle(zeno_head, zeno_level, zeno_level2, zeno_head, head);
-            positionLabel.setText("pitch "+df.format(pitchA) + " yaw "+df.format(yawA));
-            angle = 0.75f - (float) Math.cos(angle);
-
-            setPosition(neck_pitch, angle);
-            
-           
-        }
-        myRobot.move(myGoalPositions, 200);
-        et.lastUpdateTime = System.currentTimeMillis();
-    }
-    private void setPosition(org.robokind.api.motion.Robot.JointId jointID, float val) {
-        if (val < 0) {
-            val = 0.0f;
-        }
-        if (val > 1) {
-            val = 1.0f;
-        }
-        myGoalPositions.put(jointID, new NormalizedDouble(val));
-    }
-    
-    
-  */              
-    
-
-   
-
-   
-
-    
-
-
