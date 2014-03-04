@@ -9,8 +9,6 @@ import org.robokind.client.basic.Robokind;
 import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.MyUserRecord;
 import uk.ac.shef.attachment.threads.HeadTrackThread;
-import uk.ac.shef.attachment.threads.MasterThread;
-import uk.ac.shef.attachment.threads.MimicThread;
 
 /**
  *
@@ -26,16 +24,14 @@ public class HelloAction extends ZenoAction {
         //playSound("eh-oh");
         
         
-        // NEED TO DO HEAD TRACKING AS WELL - need to face the person
         
         try {
             Animation anim = Robokind.loadAnimation("animations/eh-oh-2.xml");
             MyUserRecord userRec;
             userRec = parent.currentVisitors.get(id);
-            parent.masterThread = new MasterThread(parent, userRec);
-            HeadTrackThread headTrackThread = new HeadTrackThread();
-            parent.masterThread.add(headTrackThread);
-            parent.masterThread.start(); 
+            HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
+            masterThread.add(headTrackThread);
+            masterThread.start(); 
             if (parent.robotActive) {
                 parent.myPlayer.playAnimation(anim);
                 playSound("eh-oh");
@@ -53,7 +49,7 @@ public class HelloAction extends ZenoAction {
     }
     public void conclude() {
         if (parent.robotActive) {
-            parent.masterThread.end();
+            masterThread.end();
             parent.needsToMove = false;
         }
         parent.getPositionPanel().setText("Finished greeting visitor "+id);

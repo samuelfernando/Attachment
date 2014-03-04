@@ -12,6 +12,7 @@ import org.robokind.api.motion.Joint;
 import org.robokind.api.motion.Robot.JointId;
 import uk.ac.shef.attachment.utils.VectorCalc;
 import static org.robokind.client.basic.RobotJoints.*;
+import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.MyUserRecord;
 
 /**
@@ -20,31 +21,25 @@ import uk.ac.shef.attachment.MyUserRecord;
  */
 public class HeadTrackThread extends ServantThread {
 
-    VectorCalc vc;
     JointId neck_yaw;
     JointId neck_pitch;
     long startTime;
+
    // GET MEASURING TAPE to measure exactly!
-    public HeadTrackThread() {
-        vc = new VectorCalc();
-        
+    public HeadTrackThread(Attachment parent, MyUserRecord userRec) {
+        super(parent, userRec);
+        startTime = System.currentTimeMillis();
+        if (parent.robotActive) {
+            neck_yaw = new JointId(parent.myRobot.getRobotId(), new Joint.Id(NECK_YAW));
+            neck_pitch = new JointId(parent.myRobot.getRobotId(), new Joint.Id(NECK_PITCH));
+        }
         
         // need to init neck yaw...
     }
-    
-    @Override
-    public void setMaster(MasterThread master) {
-        startTime = System.currentTimeMillis();
-        super.setMaster(master);
-        if (master.parent.robotActive) {
-            neck_yaw = new JointId(master.parent.myRobot.getRobotId(), new Joint.Id(NECK_YAW));
-            neck_pitch = new JointId(master.parent.myRobot.getRobotId(), new Joint.Id(NECK_PITCH));
-        }
-     
-    }
 
     public void runChecked() {
-        MyUserRecord userRec = master.parent.currentVisitors.get(master.userRec.userData.getId());
+        userRec = parent.currentVisitors.get(userRec.userData.getId());
+        
         UserData user = userRec.userData;
         long elapsed = System.currentTimeMillis() - startTime;
         JointType targetJoint;
@@ -67,7 +62,7 @@ public class HeadTrackThread extends ServantThread {
             center_feet.add(zenoPos);
             float yawA, pitchA;
             yawA = vc.planeAngle(orig, center_head, center_feet, orig, target);
-            master.parent.positionPanel.setVar("neck-yaw", yawA);
+            parent.positionPanel.setVar("neck-yaw", yawA);
             
             yawA = (float) Math.cos(yawA) * 0.75f + 0.5f;
             setPosition(neck_yaw, yawA);
@@ -79,7 +74,7 @@ public class HeadTrackThread extends ServantThread {
             zeno_level2.add(zenoPos);
             pitchA = vc.planeAngle(zeno_head, zeno_level, zeno_level2, zeno_head, target);
             //positionLabel.setText("pitch "+df.format(pitchA) + " yaw "+df.format(yawA));
-            master.parent.positionPanel.setVar("neck-pitch", pitchA);
+            parent.positionPanel.setVar("neck-pitch", pitchA);
             pitchA = 0.8f - (float) Math.cos(pitchA);
             
             

@@ -21,8 +21,10 @@ import org.robokind.api.animation.messaging.RemoteAnimationPlayerClient;
 import org.robokind.api.motion.messaging.RemoteRobot;
 import org.robokind.client.basic.Robokind;
 import uk.ac.shef.attachment.Attachment;
+import uk.ac.shef.attachment.EventTracker;
 import uk.ac.shef.attachment.MyUserRecord;
 import uk.ac.shef.attachment.PositionPanel;
+import uk.ac.shef.attachment.threads.MasterThread;
 
 /**
  *
@@ -34,17 +36,18 @@ public abstract class ZenoAction {
    short id;
    long duration;
    long startTime;
-   PositionPanel panel;
+   EventTracker et;
+   MasterThread masterThread;
    Attachment parent;
     DecimalFormat df;
-    RemoteRobot myRobot;
     public int priority=0;
     DatagramSocket socket;
     InetAddress address;
        int port;
    public ZenoAction(Attachment parent, String type, short id, long duration) {
         try {
-            this.parent = parent;
+            masterThread = new MasterThread(parent);
+            this.et = parent.et;
             this.type = type;
             this.id = id;
             this.duration = duration;
@@ -74,7 +77,7 @@ public abstract class ZenoAction {
        socket.send(packet);
     }
    long timeRemaining() {
-       return parent.et.currentTaskEndTime - parent.et.timeNow();
+       return et.currentTaskEndTime - et.timeNow();
    }
    void playLocalSound(String filename) {
         try {

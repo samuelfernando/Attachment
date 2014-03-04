@@ -25,10 +25,11 @@ public class ByeAction extends ZenoAction {
         try {
              MyUserRecord userRec;
             userRec = parent.currentVisitors.get(id);
-            parent.masterThread = new MasterThread(parent, userRec);
-            HeadTrackThread headTrackThread = new HeadTrackThread();
-            parent.masterThread.add(headTrackThread);
-            parent.masterThread.start(); 
+            
+            HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
+            
+            masterThread.add(headTrackThread);
+            masterThread.start(); 
             if (parent.robotActive) {
                Animation anim = Robokind.loadAnimation("animations/byebye.xml");
                parent.myPlayer.playAnimation(anim);
@@ -47,7 +48,7 @@ public class ByeAction extends ZenoAction {
     }
     public void conclude() {
          if (parent.robotActive) {
-            parent.masterThread.end();
+            masterThread.end();
             parent.needsToMove = false;
         }
         parent.getPositionPanel().setText("Finished bye visitor "+id);

@@ -7,8 +7,6 @@ package uk.ac.shef.attachment;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import uk.ac.shef.attachment.actions.ZenoAction;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

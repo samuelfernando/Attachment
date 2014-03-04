@@ -23,12 +23,11 @@ public class MimicAction extends ZenoAction {
     public void commence() {
         MyUserRecord userRec;
         userRec = parent.currentVisitors.get(id);
-        parent.masterThread = new MasterThread(parent, userRec);
-        MimicThread mimicThread = new MimicThread();
-        HeadTrackThread headTrackThread = new HeadTrackThread();
-        parent.masterThread.add(mimicThread);
-        parent.masterThread.add(headTrackThread);
-        parent.masterThread.start(); 
+        MimicThread mimicThread = new MimicThread(parent, userRec);
+        HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
+        masterThread.add(mimicThread);
+        masterThread.add(headTrackThread);
+        masterThread.start(); 
         parent.positionPanel.setText("Head Track user  "+id);
         parent.positionPanel.setTimer(parent.et.currentTaskEndTime);
         parent.positionPanel.repaint();
@@ -38,7 +37,7 @@ public class MimicAction extends ZenoAction {
        parent.positionPanel.setText("Stop head tracking user "+id);
         parent.positionPanel.repaint();
         parent.isDueToMimic.put(id, false);
-        parent.masterThread.end();
+        masterThread.end();
         parent.needsToMove = false;
     }
 }
