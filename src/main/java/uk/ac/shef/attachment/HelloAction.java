@@ -13,6 +13,7 @@ class HelloAction extends ZenoAction {
         super(parent, type, id, duration);
     }
     void commence() {
+        //System.out.println("Hello action commenced");
         playSound("eh-oh");
         userUpdate(id, "greet");
         parent.positionPanel.setText("Greetings visitor "+timeRemaining() + " "+id); 

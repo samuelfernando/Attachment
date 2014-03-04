@@ -18,8 +18,8 @@ public class MimicAction extends ZenoAction {
         parent.masterThread = new MasterThread(userRec, parent.myRobot);
         MimicThread mimicThread = new MimicThread();
         HeadTrackThread headTrackThread = new HeadTrackThread();
-        parent.masterThread.add(mimicThread);
-        parent.masterThread.add(headTrackThread);
+        parent.masterThread.add(mimicThread, userRec);
+        parent.masterThread.add(headTrackThread, userRec);
         parent.masterThread.start(); 
         parent.positionPanel.setText("Mimicking user "+df.format(timeRemaining())+ " "+id);
         parent.positionPanel.repaint();
@@ -27,7 +27,7 @@ public class MimicAction extends ZenoAction {
     void conclude() {
        parent.positionPanel.setText("Stop mimicking user "+id);
         parent.positionPanel.repaint();
-   
+        parent.masterThread.end();
         
     }
 }

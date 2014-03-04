@@ -25,7 +25,7 @@ public class PositionPanel extends Component {
         text = "waiting";
     }
     @Override
-    public synchronized void paint(Graphics g) {
+    public void paint(Graphics g) {
         g.setColor(Color.black);
         g.fillRect(0,0,this.getWidth(), this.getHeight());
        g.setColor(Color.white);

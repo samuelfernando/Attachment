@@ -15,10 +15,14 @@ import org.robokind.api.motion.Robot.JointId;
  * @author samf
  */
 public class HeadTrackThread extends ServantThread {
-    MyUserRecord userRec;
     VectorCalc vc;
     JointId neck_yaw; 
-        JointId neck_pitch;  
+    JointId neck_pitch; 
+    
+    public HeadTrackThread() {
+        vc = new VectorCalc();
+        // need to init neck yaw...
+    }
     public void runChecked() {
               UserData user = userRec.userData;
               if (user.getSkeleton().getState() == SkeletonState.TRACKED) {

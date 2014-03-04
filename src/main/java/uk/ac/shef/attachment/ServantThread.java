@@ -48,6 +48,8 @@ abstract class ServantThread extends Thread {
     void end() {
         shouldRun = false;
     }
-    
+    void setUser(MyUserRecord rec) {
+        this.userRec = rec;
+    }
     
 }

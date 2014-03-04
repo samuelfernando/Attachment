@@ -29,6 +29,7 @@ abstract class ZenoAction {
    Attachment parent;
     DecimalFormat df;
    public ZenoAction(Attachment parent, String type, short id, long duration) {
+       this.parent = parent;
        this.type = type;
        this.id = id;
        this.duration = duration;
@@ -64,14 +65,13 @@ abstract class ZenoAction {
             clip = (Clip) AudioSystem.getLine(info);
             clip.open(stream);
             clip.start();
+            //Thread.sleep(4000);
         } catch (Exception ex) {
             Logger.getLogger(Attachment.class.getName()).log(Level.SEVERE, null, ex);
         } 
     }
    abstract void commence();
-   void concludeFinal() {
-      parent.masterThread.end();
-       conclude();
-   }
    abstract void conclude();
 }
+
+ 

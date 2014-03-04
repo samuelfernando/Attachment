@@ -66,8 +66,8 @@ public class UDPTest {
        try{
             //DatagramSocket socket = new DatagramSocket(9999, InetAddress.getByName("192.168.0.101"));
            UDPTest test = new UDPTest();
-           //test.send("eh-oh");
-           test.playSound();
+           test.send("eh-oh");
+           //test.playSound();
            //test.send("neutral-wonder");
            //test.send("neutral-laugh");
            //test.send("bye-bye");

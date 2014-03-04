@@ -44,6 +44,7 @@ public class Attachment  {
     Animation ehoh;
     Animation byebye;
     HashMap<Short, MyUserRecord> currentVisitors;
+    HashMap<Short, Boolean> isDueToMimic;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
   
@@ -74,7 +75,7 @@ public class Attachment  {
             // this.positionLabel = positionLabel;
             ehoh = Robokind.loadAnimation("animations/eh-oh-2.xml");
             byebye = Robokind.loadAnimation("animations/byebye.xml");
-            
+            isDueToMimic = new HashMap<Short, Boolean>();
             currentVisitors = new HashMap<Short, MyUserRecord>();
             this.positionPanel = positionPanel;
             df = new DecimalFormat("#.##");
@@ -91,8 +92,10 @@ public class Attachment  {
     
     
     boolean userStillActive(short id) {
-        UserData user = userTracking.getLastFrame().getUserById(id);
-        return (user!=null);
+        // Need a better idea of what the 
+        //UserData user = userTracking.getLastFrame().getUserById(id);
+        //return (user!=null);
+        return currentVisitors.containsKey(id);
     }
 
     
@@ -122,12 +125,14 @@ public class Attachment  {
                 long timeSince = et.getTimeSinceLastUpdate();
                 
                 if (timeSince>200) {
+                    
+                    //System.out.println("sensorMotors time");
                     short id = user.getId();
                     if (!currentVisitors.containsKey(id)) {
                         // new visitor
-                       // System.out.println("length = "+ehoh.getLength());
-
-                       ZenoAction greet = new HelloAction(this, "greet", id, ehoh.getLength());
+                       //System.out.println("hello length = "+ehoh.getLength() + " id = "+id);
+                        
+                       HelloAction greet = new HelloAction(this, "greet", id, ehoh.getLength());
                        MyUserRecord rec = new MyUserRecord(user);
                        
                        
@@ -136,23 +141,37 @@ public class Attachment  {
                        
                     }
                     Vector3f vel = userTracking.userVel(user);
-                    positionPanel.vel = vel;
-                    positionPanel.repaint();
+                    //positionPanel.vel = vel;
+                    //positionPanel.repaint();
                     float threshold = 100.0f;
                     if (vel.z>threshold && !check(id, "farewell")) { 
-                        System.out.println("Bye bye");
-                        ZenoAction bye = new ByeAction(this,"bye", id, byebye.getLength());
+                        //System.out.println("Bye bye");
+                        ByeAction bye = new ByeAction(this,"bye", id, byebye.getLength());
                         et.push(bye);
                     }
                     else {
-                        ZenoAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 10000);
-                        et.push(mimicAndHeadTrack);
+                        //if (!et.isBusy() && et.noActions()<1) {
+                        if (!dueToMimic(id)) {
+                            MimicAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 10000);
+                            et.push(mimicAndHeadTrack);
+                            isDueToMimic.put(id, true);
+                        }
+                        //}
                     }
                     et.updated();
                 }
             }
         }
      }
+
+
+boolean dueToMimic(short id) {
+    boolean result = false;
+    if (isDueToMimic.containsKey(id)) {
+         result = isDueToMimic.get(id);
+    }
+    return result;
+}
 }
 /*
     void oldSensorMotors() {

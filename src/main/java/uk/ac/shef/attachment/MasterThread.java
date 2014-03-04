@@ -19,8 +19,9 @@ class MasterThread {
         tasks = new HashSet<ServantThread>();
     }
 
-    void add(ServantThread servant) {
+    void add(ServantThread servant, MyUserRecord rec) {
         tasks.add(servant);
+        servant.setUser(rec);
     }
 
     void start() {
