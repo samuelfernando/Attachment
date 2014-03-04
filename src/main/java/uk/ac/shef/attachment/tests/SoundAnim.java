@@ -53,15 +53,31 @@ public class SoundAnim {
             e.printStackTrace();
         }
     }
-    void run() throws Exception {
-        
-        //Robot.RobotPositionMap myGoalPositions = myRobot.getDefaultPositions();
-        //myRobot.move(myGoalPositions, 1000);
-        //Thread.sleep(1000);
+    
+    void helloSound() throws Exception {
         Animation anim = Robokind.loadAnimation("animations/eh-oh-2.xml");
         myPlayer.playAnimation(anim);
         send("eh-oh");
         Thread.sleep(1600);
         send("eh-oh");
+    
+    }
+    void byebyeSound() throws Exception {
+        Animation anim = Robokind.loadAnimation("animations/byebye.xml");
+        myPlayer.playAnimation(anim);
+        send("bye-bye");
+        Thread.sleep(1600);
+        send("bye-bye");
+    
+    }
+   
+    void run() throws Exception {
+        
+        //Robot.RobotPositionMap myGoalPositions = myRobot.getDefaultPositions();
+        //myRobot.move(myGoalPositions, 1000);
+        //Thread.sleep(1000);
+        
+        //helloSound();
+        byebyeSound();
     }
 }

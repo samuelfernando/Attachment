@@ -13,7 +13,9 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.vecmath.Vector3f;
 import org.robokind.api.animation.Animation;
+import org.robokind.api.animation.messaging.RemoteAnimationPlayerClient;
 import org.robokind.api.motion.Robot.JointId;
+import org.robokind.api.motion.Robot.RobotPositionHashMap;
 import org.robokind.api.motion.Robot.RobotPositionMap;
 import org.robokind.api.motion.messaging.RemoteRobot;
 import org.robokind.api.speech.messaging.RemoteSpeechServiceClient;
@@ -32,7 +34,7 @@ public class Attachment  {
     JointId neck_pitch;
     VectorCalc vc;
     public EventTracker et;
-    UserTracking userTracking;
+    public UserTracking userTracking;
     public boolean robotActive;
     public MasterThread masterThread;
     Animation ehoh;
@@ -40,13 +42,15 @@ public class Attachment  {
     public HashMap<Short, MyUserRecord> currentVisitors;
     public HashMap<Short, Boolean> isDueToMimic;
     RemoteSpeechServiceClient mySpeaker;
+    public RemoteAnimationPlayerClient myPlayer;
+    public boolean needsToMove;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
       public Attachment(UserTracker tracker, PositionPanel positionPanel) {
   
         try {
             //BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\samf\\Documents\\NetBeansProjects\\zeno-ip.txt"));
             HashMap<String, String> configs = ReadConfig.readConfig();
-            robotActive = Boolean.parseBoolean(configs.get("robotActive"));
+            robotActive = Boolean.parseBoolean(configs.get("robot-active"));
             
             if (robotActive) {
                 String robotIP = configs.get("ip");
@@ -59,15 +63,17 @@ public class Attachment  {
                 UserSettings.setRobotId(robotID);
                 UserSettings.setRobotAddress(robotIP);
                 UserSettings.setSpeechAddress(robotIP);
-                       
+                         UserSettings.setAnimationAddress(robotIP);
+      
            
                 mySpeaker = Robokind.connectSpeechService();
-            
+                myPlayer = Robokind.connectAnimationPlayer();
                 myRobot = Robokind.connectRobot();
                 myGoalPositions = new org.robokind.api.motion.Robot.RobotPositionHashMap();
                 myGoalPositions = myRobot.getDefaultPositions();
                 myRobot.move(myGoalPositions, 1000);
                 Thread.sleep(1000);
+                myGoalPositions.clear();
             }
             
             // this.positionLabel = positionLabel;
@@ -80,6 +86,8 @@ public class Attachment  {
             userTracking = new UserTracking(tracker, this); 
             vc = new VectorCalc();
             et = new EventTracker(this);
+                        needsToMove = false;
+
             et.start();
          } catch (Exception e) {
             e.printStackTrace();
@@ -178,12 +186,14 @@ public class Attachment  {
                     
                     } else {
                         MyUserRecord rec = currentVisitors.get(id);
+                        rec.userData = user;
                         rec.cancelDeletion();
+                        currentVisitors.put(id, rec);
                     }
                     Vector3f vel = userTracking.userVel(user);
                     //positionPanel.vel = vel;
                     //positionPanel.repaint();
-                    float threshold = 100.0f;
+                    float threshold = 500.0f;
                    // if (vel.z>threshold && !check(id, "farewell")) { 
                      if (vel.z>threshold && !check(id, "farewell")) { 
                         //System.out.println("Bye bye");
@@ -202,8 +212,16 @@ public class Attachment  {
                     }
                     et.updated();
                     positionPanel.repaint();
-                    if (robotActive) {
+                    if (robotActive && needsToMove) {
+                        //System.out.println("Moving robot");
                         myRobot.move(myGoalPositions, 200);
+                        myGoalPositions.clear();
+                        /*try {
+                            Thread.sleep(200);
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }*/
                     }
                     
                     
@@ -212,7 +230,9 @@ public class Attachment  {
         }
      }
 
-
+public void addGoalPositions(RobotPositionMap goalPositions) {
+    myGoalPositions.putAll(goalPositions);
+}
 boolean dueToMimic(short id) {
     boolean result = false;
     if (isDueToMimic.containsKey(id)) {

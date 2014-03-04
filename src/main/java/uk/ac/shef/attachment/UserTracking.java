@@ -49,7 +49,7 @@ public class UserTracking extends Component implements UserTracker.NewFrameListe
         prevSkeletons = new HashMap<Short, Skeleton>();
         vc = new VectorCalc();
     }
-    UserTrackerFrameRef getLastFrame() {
+    public UserTrackerFrameRef getLastFrame() {
         return mLastFrame;
     }
     

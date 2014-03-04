@@ -24,20 +24,21 @@ public class MimicAction extends ZenoAction {
         MyUserRecord userRec;
         userRec = parent.currentVisitors.get(id);
         parent.masterThread = new MasterThread(parent, userRec);
-        MimicThread mimicThread = new MimicThread();
+        //MimicThread mimicThread = new MimicThread();
         HeadTrackThread headTrackThread = new HeadTrackThread();
-        parent.masterThread.add(mimicThread);
+        //parent.masterThread.add(mimicThread);
         parent.masterThread.add(headTrackThread);
         parent.masterThread.start(); 
-        parent.positionPanel.setText("Mimicking user  "+id);
+        parent.positionPanel.setText("Head Track user  "+id);
         parent.positionPanel.setTimer(parent.et.currentTaskEndTime);
         parent.positionPanel.repaint();
+        parent.needsToMove = true;
     }
     public void conclude() {
-       parent.positionPanel.setText("Stop mimicking user "+id);
+       parent.positionPanel.setText("Stop head tracking user "+id);
         parent.positionPanel.repaint();
         parent.isDueToMimic.put(id, false);
         parent.masterThread.end();
-        
+        parent.needsToMove = false;
     }
 }

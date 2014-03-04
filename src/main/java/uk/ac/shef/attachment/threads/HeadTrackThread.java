@@ -12,6 +12,7 @@ import org.robokind.api.motion.Joint;
 import org.robokind.api.motion.Robot.JointId;
 import uk.ac.shef.attachment.utils.VectorCalc;
 import static org.robokind.client.basic.RobotJoints.*;
+import uk.ac.shef.attachment.MyUserRecord;
 
 /**
  *
@@ -39,7 +40,8 @@ public class HeadTrackThread extends ServantThread {
     }
 
     public void runChecked() {
-        UserData user = master.userRec.userData;
+        MyUserRecord userRec = master.parent.currentVisitors.get(master.userRec.userData.getId());
+        UserData user = userRec.userData;
         if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
 
             Point3f head = vc.convertPoint(user.getSkeleton().getJoint(JointType.HEAD).getPosition());
