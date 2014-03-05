@@ -29,7 +29,7 @@ public class MimicThread extends ServantThread {
     JointId right_shoulder_pitch;
     JointId right_shoulder_roll;
     JointId right_elbow_pitch;
-   
+   long lastUpdate;
 
     public MimicThread(Attachment parent, MyUserRecord userRec) {
         super(parent, userRec);
@@ -52,7 +52,11 @@ public class MimicThread extends ServantThread {
          userRec = parent.currentVisitors.get(userRec.userData.getId());
         
         UserData user = userRec.userData;
-
+ long now = System.currentTimeMillis();
+         if (now-lastUpdate<200) {
+             return;
+         }
+         lastUpdate = now;
        // UserData user = master.userRec.userData;
        if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
             Point3f leftShoulder = vc.convertPoint(user.getSkeleton().getJoint(JointType.LEFT_SHOULDER).getPosition());

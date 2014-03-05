@@ -20,24 +20,22 @@ public class HelloAction extends ZenoAction {
         priority = 1000;
     }
     public void commence() {
-        //System.out.println("Hello action commenced");
-        //playSound("eh-oh");
-        
-        
-        
         try {
             Animation anim = Robokind.loadAnimation("animations/eh-oh-2.xml");
             MyUserRecord userRec;
             userRec = parent.currentVisitors.get(id);
-            HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
-            masterThread.add(headTrackThread);
-            masterThread.start(); 
             if (parent.robotActive) {
+                HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
+                masterThread.add(headTrackThread);
+                masterThread.start(); 
+
                 parent.myPlayer.playAnimation(anim);
                 playSound("eh-oh");
                 Thread.sleep(1600);
                 playSound("eh-oh");
+           
             }
+            
             parent.getPositionPanel().setText("Greetings visitor "+id);
             parent.getPositionPanel().setTimer(parent.et.currentTaskEndTime);
             parent.needsToMove = true;

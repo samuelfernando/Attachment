@@ -7,8 +7,6 @@ package uk.ac.shef.attachment.actions;
 import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.MyUserRecord;
 import uk.ac.shef.attachment.threads.BlinkThread;
-import uk.ac.shef.attachment.threads.HeadTrackThread;
-import uk.ac.shef.attachment.threads.MimicThread;
 
 /**
  *
@@ -24,7 +22,7 @@ public class BlinkAction extends ZenoAction {
         userRec = parent.currentVisitors.get(id);
         BlinkThread blinkThread = new BlinkThread(parent, userRec);
           masterThread.add(blinkThread);
-        
+        System.out.println("Blink starting");
         masterThread.start(); 
     }
     public void conclude() {

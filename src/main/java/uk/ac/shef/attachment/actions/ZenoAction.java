@@ -46,6 +46,7 @@ public abstract class ZenoAction {
        int port;
    public ZenoAction(Attachment parent, String type, short id, long duration) {
         try {
+            this.parent = parent;
             masterThread = new MasterThread(parent);
             this.et = parent.et;
             this.type = type;

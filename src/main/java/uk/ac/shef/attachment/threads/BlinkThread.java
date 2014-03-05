@@ -17,6 +17,7 @@ import uk.ac.shef.attachment.MyUserRecord;
 public class BlinkThread extends ServantThread {
    JointId eyelids;
    long lastBlink;
+   long lastStart;
    int state;
    static final int START = 0;
    static final int CLOSE_EYES = 1;
@@ -32,12 +33,13 @@ public class BlinkThread extends ServantThread {
    
    public void runChecked() {
        long now = System.currentTimeMillis();
-       if (now-lastBlink>5000) {
+       if (now-lastBlink>3000) {
            if (state==START) {
                state = CLOSE_EYES;
                setPosition(eyelids, 0.0f);
+               lastStart = now;
            }
-           else if (state==CLOSE_EYES) {
+           else if (state==CLOSE_EYES && now-lastStart>200) {
                state = START;
                setPosition(eyelids, 1.0f);
                lastBlink = now;

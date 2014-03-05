@@ -43,6 +43,8 @@ public class Attachment {
     RemoteSpeechServiceClient mySpeaker;
     public RemoteAnimationPlayerClient myPlayer;
     public boolean needsToMove;
+    boolean firstTime = true;
+    BlinkAction blink;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
 
     public Attachment(UserTracker tracker, PositionPanel positionPanel) {
@@ -87,12 +89,8 @@ public class Attachment {
             vc = new VectorCalc();
             et = new EventTracker(this);
             needsToMove = false;
-            short fakeId = 9999;
-            long duration = 100000000;
-            BlinkAction blink;
-            blink = new BlinkAction(this, "blink", fakeId, duration);
-            commence(blink);
-            et.start();
+            
+         et.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -142,6 +140,14 @@ public class Attachment {
     }
 
     void sensorMotors() {
+        if (firstTime) {
+            short fakeId = 9999;
+            long duration = 100000000;
+            blink = new BlinkAction(this, "blink", fakeId, duration);
+            commence(blink);
+            firstTime = false;
+        }
+         
         //float timeSince = et.timeSinceLastUpdate();
         long timeSince = et.getTimeSinceLastUpdate();
         if (timeSince > 200) {
@@ -188,14 +194,14 @@ public class Attachment {
                     }
                     Vector3f vel = userTracking.userVel(user);
                     positionPanel.vel = vel;
-                    float threshold = 500.0f;
+                    float threshold = 100.0f;
                     if (vel.z > threshold && !check(id, "farewell")) {
                         ByeAction bye = new ByeAction(this, "bye", id, byebye.getLength());
                         userUpdate(id, "bye");
                         et.push(bye);
                     } else {
                         if (!dueToMimic(id)) {
-                            MimicAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 10000);
+                            MimicAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 5000);
                             et.push(mimicAndHeadTrack);
                             isDueToMimic.put(id, true);
                         }

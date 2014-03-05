@@ -38,7 +38,8 @@ public class PositionPanel extends Component {
         g.fillRect(0,0,this.getWidth(), this.getHeight());
        g.setColor(Color.white);
        g.setFont(font);
-       g.drawString(text, 0,200);
+       g.drawString("vel " +vel.z, 0, 200);
+       g.drawString(text, 0,250);
        
        String out = "timeRemaining = "+(endTime-System.currentTimeMillis());
        g.drawString(out, 0, 300);
