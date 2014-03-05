@@ -10,6 +10,8 @@ import uk.ac.shef.attachment.actions.ZenoAction;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -72,6 +74,8 @@ public class EventTracker {
             if (timeNow()>currentTaskEndTime) {
             
                 parent.conclude(currentAction);
+                parent.robotController.setDefaultPositions();
+               
                 busy = false;
             }
         }
@@ -94,9 +98,9 @@ public class EventTracker {
     }
 
     void push(ZenoAction action) {
-        System.out.println("adding "+action.getType());
+        //System.out.println("adding "+action.getType());
         actions.add(action);
-        System.out.println(actions);
+        //System.out.println(actions);
     }
 
     

@@ -5,10 +5,6 @@
 package uk.ac.shef.attachment.actions;
 
 import java.io.File;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,13 +13,8 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
-import org.robokind.api.animation.messaging.RemoteAnimationPlayerClient;
-import org.robokind.api.motion.messaging.RemoteRobot;
-import org.robokind.client.basic.Robokind;
 import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.EventTracker;
-import uk.ac.shef.attachment.MyUserRecord;
-import uk.ac.shef.attachment.PositionPanel;
 import uk.ac.shef.attachment.threads.MasterThread;
 
 /**
@@ -37,26 +28,19 @@ public abstract class ZenoAction {
    long duration;
    long startTime;
    EventTracker et;
-   MasterThread masterThread;
    Attachment parent;
     DecimalFormat df;
     public int priority=0;
-    DatagramSocket socket;
-    InetAddress address;
-       int port;
    public ZenoAction(Attachment parent, String type, short id, long duration) {
         try {
             this.parent = parent;
-            masterThread = new MasterThread(parent);
             this.et = parent.et;
             this.type = type;
             this.id = id;
             this.duration = duration;
             df = new DecimalFormat("#.##");
             //this.startTime = System.currentTimeMillis();
-              socket = new DatagramSocket();
-             address = InetAddress.getByName("192.168.0.101");
-             port = 9999;
+             
         } catch (Exception ex) {
             Logger.getLogger(ZenoAction.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -72,11 +56,6 @@ public abstract class ZenoAction {
    public short getId() {
        return id;
    }
-    void playSound(String text) throws Exception {
-       byte[] strBytes = text.getBytes("utf-8");
-       DatagramPacket packet = new DatagramPacket(strBytes, 0, strBytes.length, address, port);
-       socket.send(packet);
-    }
    long timeRemaining() {
        return et.currentTaskEndTime - et.timeNow();
    }

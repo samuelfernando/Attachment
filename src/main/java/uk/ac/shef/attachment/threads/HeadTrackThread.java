@@ -7,6 +7,7 @@ package uk.ac.shef.attachment.threads;
 import com.primesense.nite.JointType;
 import com.primesense.nite.SkeletonState;
 import com.primesense.nite.UserData;
+import java.util.Stack;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import org.robokind.api.motion.Joint;
@@ -15,6 +16,7 @@ import uk.ac.shef.attachment.utils.VectorCalc;
 import static org.robokind.client.basic.RobotJoints.*;
 import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.MyUserRecord;
+import uk.ac.shef.attachment.RobotController;
 
 /**
  *
@@ -27,38 +29,48 @@ public class HeadTrackThread extends ServantThread {
     long startTime;
     Point3f prevLeftHand;
     Point3f prevRightHand;
-   // GET MEASURING TAPE to measure exactly!
+    Stack<Vector3f> leftHandSpeeds;
+    Stack<Vector3f> rightHandSpeeds;
+    // GET MEASURING TAPE to measure exactly!
     long lastUpdate;
     long lastTargetChange;
     JointType targetJoint;
            
-    public HeadTrackThread(Attachment parent, MyUserRecord userRec) {
-        super(parent, userRec);
+    public HeadTrackThread(Attachment parent) {
+        super(parent);
+        RobotController controller = parent.robotController;
         startTime = System.currentTimeMillis();
         if (parent.robotActive) {
-            neck_yaw = new JointId(parent.myRobot.getRobotId(), new Joint.Id(NECK_YAW));
-            neck_pitch = new JointId(parent.myRobot.getRobotId(), new Joint.Id(NECK_PITCH));
+            neck_yaw = new JointId(controller.myRobot.getRobotId(), new Joint.Id(NECK_YAW));
+            neck_pitch = new JointId(controller.myRobot.getRobotId(), new Joint.Id(NECK_PITCH));
         }
         prevLeftHand = new Point3f();
         prevRightHand = new Point3f();
         targetJoint = JointType.HEAD;
+        lastTargetChange = startTime;
         // need to init neck yaw...
+        leftHandSpeeds = new Stack<Vector3f>();
+        rightHandSpeeds = new Stack<Vector3f>();
     }
 
-    public void runChecked() {
-        userRec = parent.currentVisitors.get(userRec.userData.getId());
-        
+    public void update() {
+        //System.out.println("running head track "+userRec.userData.getId());
+        MyUserRecord userRec = parent.currentVisitors.get(id);
+        if (userRec==null) {
+            System.out.println("null userRec");
+            return;
+        }
         UserData user = userRec.userData;
+        if (user==null) {
+            System.out.println("null userData");
+
+            return;
+        }
          long now = System.currentTimeMillis();
-         if (now-lastUpdate<200) {
-             return;
-         }
-         lastUpdate = now;
      
         if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
             Point3f leftHand = vc.convertPoint(user.getSkeleton().getJoint(JointType.LEFT_HAND).getPosition());
             Point3f rightHand = vc.convertPoint(user.getSkeleton().getJoint(JointType.RIGHT_HAND).getPosition());
-            Point3f head = vc.convertPoint(user.getSkeleton().getJoint(JointType.HEAD).getPosition());
        
             //Point3f target = vc.convertPoint(user.getSkeleton().getJoint(targetJoint).getPosition());
             Vector3f leftHandVel = new Vector3f();
@@ -66,21 +78,26 @@ public class HeadTrackThread extends ServantThread {
             
             leftHandVel.sub(leftHand, prevLeftHand);
             rightHandVel.sub(rightHand, prevRightHand);
-            float leftHandSpeed = leftHandVel.length();
-            float rightHandSpeed = rightHandVel.length();
+            leftHandSpeeds.push(leftHandVel);
+            rightHandSpeeds.push(rightHandVel);
             
             
             parent.positionPanel.setVar("leftHand", leftHand.x);
             parent.positionPanel.setVar("rightHand", rightHand.x);
-           if (now-lastTargetChange>2500) {
-                if (rightHandSpeed - leftHandSpeed > 50) {
-                    targetJoint = JointType.RIGHT_HAND;
+            if (now-lastTargetChange>1500) {
+                float leftHandTotal = 0.0f;
+                float rightHandTotal = 0.0f;
+                while (!leftHandSpeeds.isEmpty()) {
+                    Vector3f leftHandV = leftHandSpeeds.pop();
+                    Vector3f rightHandV = rightHandSpeeds.pop();
+                    leftHandTotal+=leftHandV.length();
+                    rightHandTotal+=rightHandV.length();
                 }
-                else if (leftHandSpeed - rightHandSpeed > 50) {
-                    targetJoint = JointType.LEFT_HAND ;
+                if (leftHandTotal>rightHandTotal) {
+                    targetJoint = JointType.LEFT_HAND;
                 }
                 else {
-                    targetJoint = JointType.HEAD;
+                    targetJoint = JointType.RIGHT_HAND;
                 }
                 lastTargetChange = now;
            }

@@ -16,17 +16,13 @@ public class BlinkAction extends ZenoAction {
  public BlinkAction(Attachment parent, String type, short id, long duration) {
      super(parent, type, id, duration);
  }
-    @Override
-    public void commence() {
-        MyUserRecord userRec;
-        userRec = parent.currentVisitors.get(id);
-        BlinkThread blinkThread = new BlinkThread(parent, userRec);
-          masterThread.add(blinkThread);
+ @Override
+ public void commence() {
+        parent.blinkThread.start();
         System.out.println("Blink starting");
-        masterThread.start(); 
     }
     public void conclude() {
-        masterThread.end();
+        parent.blinkThread.end();
     }
     
 }

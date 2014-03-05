@@ -14,6 +14,7 @@ import org.robokind.api.motion.Robot.JointId;
 import static org.robokind.client.basic.RobotJoints.*;
 import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.MyUserRecord;
+import uk.ac.shef.attachment.RobotController;
 
 /**
  *
@@ -31,32 +32,39 @@ public class MimicThread extends ServantThread {
     JointId right_elbow_pitch;
    long lastUpdate;
 
-    public MimicThread(Attachment parent, MyUserRecord userRec) {
-        super(parent, userRec);
+    public MimicThread(Attachment parent) {
+        super(parent);
+        RobotController controller = parent.robotController;
         if (parent.robotActive) {
-            left_shoulder_pitch = new JointId(parent.myRobot.getRobotId(), new Joint.Id(LEFT_SHOULDER_PITCH));
-            left_shoulder_roll = new JointId(parent.myRobot.getRobotId(), new Joint.Id(LEFT_SHOULDER_ROLL));
-            left_elbow_pitch = new JointId(parent.myRobot.getRobotId(), new Joint.Id(LEFT_ELBOW_PITCH));
-            right_elbow_yaw = new JointId(parent.myRobot.getRobotId(), new Joint.Id(RIGHT_ELBOW_YAW));
-            left_elbow_yaw = new JointId(parent.myRobot.getRobotId(), new Joint.Id(LEFT_ELBOW_YAW));
-            right_shoulder_pitch = new JointId(parent.myRobot.getRobotId(), new Joint.Id(RIGHT_SHOULDER_PITCH));
-            right_shoulder_roll = new JointId(parent.myRobot.getRobotId(), new Joint.Id(RIGHT_SHOULDER_ROLL));
-            right_elbow_pitch = new JointId(parent.myRobot.getRobotId(), new Joint.Id(RIGHT_ELBOW_PITCH));
+            left_shoulder_pitch = new JointId(controller.myRobot.getRobotId(), new Joint.Id(LEFT_SHOULDER_PITCH));
+            left_shoulder_roll = new JointId(controller.myRobot.getRobotId(), new Joint.Id(LEFT_SHOULDER_ROLL));
+            left_elbow_pitch = new JointId(controller.myRobot.getRobotId(), new Joint.Id(LEFT_ELBOW_PITCH));
+            right_elbow_yaw = new JointId(controller.myRobot.getRobotId(), new Joint.Id(RIGHT_ELBOW_YAW));
+            left_elbow_yaw = new JointId(controller.myRobot.getRobotId(), new Joint.Id(LEFT_ELBOW_YAW));
+            right_shoulder_pitch = new JointId(controller.myRobot.getRobotId(), new Joint.Id(RIGHT_SHOULDER_PITCH));
+            right_shoulder_roll = new JointId(controller.myRobot.getRobotId(), new Joint.Id(RIGHT_SHOULDER_ROLL));
+            right_elbow_pitch = new JointId(controller.myRobot.getRobotId(), new Joint.Id(RIGHT_ELBOW_PITCH));
         }
         
         // need to init neck yaw...
     }
 
     @Override
-    public void runChecked() {
-         userRec = parent.currentVisitors.get(userRec.userData.getId());
-        
+    public void update() {
+        //System.out.println("running mimic "+userRec.userData.getId());
+        MyUserRecord userRec = parent.currentVisitors.get(id);
+        if (userRec==null) {
+            System.out.println("null userRec");
+            return;
+        }
         UserData user = userRec.userData;
- long now = System.currentTimeMillis();
-         if (now-lastUpdate<200) {
-             return;
-         }
-         lastUpdate = now;
+        if (user==null) {
+            System.out.println("null userData");
+
+            return;
+        }
+      //  long now = System.currentTimeMillis();
+         
        // UserData user = master.userRec.userData;
        if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
             Point3f leftShoulder = vc.convertPoint(user.getSkeleton().getJoint(JointType.LEFT_SHOULDER).getPosition());

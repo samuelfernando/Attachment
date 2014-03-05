@@ -8,7 +8,6 @@ import org.robokind.api.motion.Joint;
 import org.robokind.api.motion.Robot.JointId;
 import static org.robokind.client.basic.RobotJoints.*;
 import uk.ac.shef.attachment.Attachment;
-import uk.ac.shef.attachment.MyUserRecord;
 
 /**
  *
@@ -22,16 +21,16 @@ public class BlinkThread extends ServantThread {
    static final int START = 0;
    static final int CLOSE_EYES = 1;
    
-   public BlinkThread(Attachment parent, MyUserRecord userRec) {
-        super(parent, userRec);
+   public BlinkThread(Attachment parent) {
+        super(parent);
         if (parent.robotActive) {
-          eyelids = new JointId(parent.myRobot.getRobotId(), new Joint.Id(EYELIDS));
+          eyelids = new JointId(parent.robotController.myRobot.getRobotId(), new Joint.Id(EYELIDS));
                   
          }
             state = START;     // need to init neck yaw...
     }
    
-   public void runChecked() {
+   public void update() {
        long now = System.currentTimeMillis();
        if (now-lastBlink>3000) {
            if (state==START) {
@@ -39,7 +38,7 @@ public class BlinkThread extends ServantThread {
                setPosition(eyelids, 0.0f);
                lastStart = now;
            }
-           else if (state==CLOSE_EYES && now-lastStart>200) {
+           else if (state==CLOSE_EYES && now-lastStart>100) {
                state = START;
                setPosition(eyelids, 1.0f);
                lastBlink = now;

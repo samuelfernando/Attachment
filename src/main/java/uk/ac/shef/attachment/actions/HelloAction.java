@@ -22,23 +22,16 @@ public class HelloAction extends ZenoAction {
     public void commence() {
         try {
             Animation anim = Robokind.loadAnimation("animations/eh-oh-2.xml");
-            MyUserRecord userRec;
-            userRec = parent.currentVisitors.get(id);
-            if (parent.robotActive) {
-                HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
-                masterThread.add(headTrackThread);
-                masterThread.start(); 
-
-                parent.myPlayer.playAnimation(anim);
-                playSound("eh-oh");
-                Thread.sleep(1600);
-                playSound("eh-oh");
+            parent.headTrackThread.start(id);
+            parent.robotController.myPlayer.playAnimation(anim);
+            parent.soundPlayer.playSound("eh-oh");
+            Thread.sleep(1600);
+            parent.soundPlayer.playSound("eh-oh");
            
-            }
+            
             
             parent.getPositionPanel().setText("Greetings visitor "+id);
             parent.getPositionPanel().setTimer(parent.et.currentTaskEndTime);
-            parent.needsToMove = true;
         }
         
         catch (Exception e) {
@@ -46,10 +39,7 @@ public class HelloAction extends ZenoAction {
         }
     }
     public void conclude() {
-        if (parent.robotActive) {
-            masterThread.end();
-            parent.needsToMove = false;
-        }
+        
         parent.getPositionPanel().setText("Finished greeting visitor "+id);
         parent.getPositionPanel().repaint();
     }

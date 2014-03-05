@@ -5,33 +5,27 @@ import uk.ac.shef.attachment.actions.MimicAction;
 import uk.ac.shef.attachment.actions.ZenoAction;
 import uk.ac.shef.attachment.actions.ByeAction;
 import uk.ac.shef.attachment.actions.HelloAction;
-import uk.ac.shef.attachment.threads.MasterThread;
 import com.primesense.nite.*;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.HashSet;
 import javax.vecmath.Vector3f;
 import org.robokind.api.animation.Animation;
-import org.robokind.api.animation.messaging.RemoteAnimationPlayerClient;
-import org.robokind.api.common.position.NormalizedDouble;
-import org.robokind.api.motion.Robot.JointId;
-import org.robokind.api.motion.Robot.RobotPositionMap;
-import org.robokind.api.motion.messaging.RemoteRobot;
-import org.robokind.api.speech.messaging.RemoteSpeechServiceClient;
 import org.robokind.client.basic.Robokind;
-import org.robokind.client.basic.UserSettings;
 import uk.ac.shef.attachment.actions.BlinkAction;
+import uk.ac.shef.attachment.threads.BlinkThread;
+import uk.ac.shef.attachment.threads.HeadTrackThread;
+import uk.ac.shef.attachment.threads.MimicThread;
+import uk.ac.shef.attachment.threads.SpeechThread;
 import uk.ac.shef.attachment.utils.ReadConfig;
+import uk.ac.shef.attachment.utils.SoundPlayer;
 
 public class Attachment {
 
-    public RemoteRobot myRobot;
-    public RobotPositionMap myGoalPositions;
     PrintStream out;
     DecimalFormat df;
     public PositionPanel positionPanel;
-    JointId neck_yaw;
-    JointId neck_pitch;
     VectorCalc vc;
     public EventTracker et;
     public UserTracking userTracking;
@@ -40,12 +34,14 @@ public class Attachment {
     Animation byebye;
     public HashMap<Short, MyUserRecord> currentVisitors;
     public HashMap<Short, Boolean> isDueToMimic;
-    RemoteSpeechServiceClient mySpeaker;
-    public RemoteAnimationPlayerClient myPlayer;
-    public boolean needsToMove;
     boolean firstTime = true;
-    BlinkAction blink;
+    public BlinkThread blinkThread;
+    public MimicThread mimicThread;
+    public HeadTrackThread headTrackThread;
+    public SpeechThread speechThread;
 //    public Attachment(UserTracker tracker, JLabel positionLabel) {
+    public SoundPlayer soundPlayer;
+    public RobotController robotController;
 
     public Attachment(UserTracker tracker, PositionPanel positionPanel) {
 
@@ -53,31 +49,9 @@ public class Attachment {
             //BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\samf\\Documents\\NetBeansProjects\\zeno-ip.txt"));
             HashMap<String, String> configs = ReadConfig.readConfig();
             robotActive = Boolean.parseBoolean(configs.get("robot-active"));
-
             if (robotActive) {
-                String robotIP = configs.get("ip");
-
-                String robotID = "myRobot";
-
-                // set respective addresses
-
-
-                UserSettings.setRobotId(robotID);
-                UserSettings.setRobotAddress(robotIP);
-                UserSettings.setSpeechAddress(robotIP);
-                UserSettings.setAnimationAddress(robotIP);
-
-
-                mySpeaker = Robokind.connectSpeechService();
-                myPlayer = Robokind.connectAnimationPlayer();
-                myRobot = Robokind.connectRobot();
-                myGoalPositions = new org.robokind.api.motion.Robot.RobotPositionHashMap();
-                myGoalPositions = myRobot.getDefaultPositions();
-                myRobot.move(myGoalPositions, 1000);
-                Thread.sleep(1000);
-                myGoalPositions.clear();
+                robotController = new RobotController(configs.get("ip"));
             }
-
             // this.positionLabel = positionLabel;
             ehoh = Robokind.loadAnimation("animations/eh-oh-2.xml");
             byebye = Robokind.loadAnimation("animations/byebye.xml");
@@ -88,9 +62,8 @@ public class Attachment {
             userTracking = new UserTracking(tracker, this);
             vc = new VectorCalc();
             et = new EventTracker(this);
-            needsToMove = false;
-            
-         et.start();
+            soundPlayer = new SoundPlayer();
+            et.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -143,13 +116,14 @@ public class Attachment {
         if (firstTime) {
             short fakeId = 9999;
             long duration = 100000000;
-            blink = new BlinkAction(this, "blink", fakeId, duration);
+            BlinkAction blink = new BlinkAction(this, "blink", fakeId, duration);
             commence(blink);
             firstTime = false;
         }
-         
+
         //float timeSince = et.timeSinceLastUpdate();
         long timeSince = et.getTimeSinceLastUpdate();
+        HashSet<Short> removes = new HashSet<Short>();
         if (timeSince > 200) {
             for (short id : currentVisitors.keySet()) {
                 if (userTracking.getLastFrame().getUserById(id) == null) {
@@ -157,7 +131,7 @@ public class Attachment {
                     MyUserRecord userRec = currentVisitors.get(id);
                     if (userRec.scheduledForDeletion) {
                         if (System.currentTimeMillis() > userRec.timeForDeletion) {
-                            currentVisitors.remove(id);
+                            removes.add(id);
                         }
                     } else {
                         userRec.scheduleForDeletion();
@@ -165,6 +139,10 @@ public class Attachment {
                 }
             }
         }
+        for (Short removeId : removes) {
+            currentVisitors.remove(removeId);
+        }
+
 
         for (UserData user : userTracking.getLastFrame().getUsers()) {
             if (user.getSkeleton().getState() == SkeletonState.TRACKED) {
@@ -186,12 +164,13 @@ public class Attachment {
                         et.push(greet);
 
 
-                    } else {
-                        MyUserRecord rec = currentVisitors.get(id);
-                        rec.userData = user;
-                        rec.cancelDeletion();
-                        currentVisitors.put(id, rec);
                     }
+
+                    MyUserRecord rec = currentVisitors.get(id);
+                    rec.userData = user;
+                    rec.cancelDeletion();
+                    currentVisitors.put(id, rec);
+
                     Vector3f vel = userTracking.userVel(user);
                     positionPanel.vel = vel;
                     float threshold = 100.0f;
@@ -201,27 +180,23 @@ public class Attachment {
                         et.push(bye);
                     } else {
                         if (!dueToMimic(id)) {
-                            MimicAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 5000);
+                            MimicAction mimicAndHeadTrack = new MimicAction(this, "mimic+headTrack", id, 6000);
                             et.push(mimicAndHeadTrack);
                             isDueToMimic.put(id, true);
                         }
                     }
                     et.updated();
                     positionPanel.repaint();
-                    if (robotActive && needsToMove) {
+
+                    if (robotActive) {
                         //System.out.println("Moving robot");
-                        myRobot.move(myGoalPositions, 200);
-                        myGoalPositions.clear();
+                        robotController.moveGoalPositions();
                     }
 
 
                 }
             }
         }
-    }
-
-    public void addGoalPosition(org.robokind.api.motion.Robot.JointId jointID, NormalizedDouble val) {
-        myGoalPositions.put(jointID, val);
     }
 
     boolean dueToMimic(short id) {

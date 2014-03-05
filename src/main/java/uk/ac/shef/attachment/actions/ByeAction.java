@@ -9,7 +9,6 @@ import org.robokind.client.basic.Robokind;
 import uk.ac.shef.attachment.Attachment;
 import uk.ac.shef.attachment.MyUserRecord;
 import uk.ac.shef.attachment.threads.HeadTrackThread;
-import uk.ac.shef.attachment.threads.MasterThread;
 
 /**
  *
@@ -23,21 +22,15 @@ public class ByeAction extends ZenoAction {
     public void commence() {
         System.out.println("bye bye");
         try {
-             MyUserRecord userRec;
-            userRec = parent.currentVisitors.get(id);
             
-            HeadTrackThread headTrackThread = new HeadTrackThread(parent, userRec);
-            
-            masterThread.add(headTrackThread);
-            masterThread.start(); 
+            parent.headTrackThread.start(id);
             if (parent.robotActive) {
                Animation anim = Robokind.loadAnimation("animations/byebye.xml");
-               parent.myPlayer.playAnimation(anim);
-               playSound("bye-bye");
+               parent.robotController.myPlayer.playAnimation(anim);
+               parent.soundPlayer.playSound("bye-bye");
                Thread.sleep(1600);
-               playSound("bye-bye");
+               parent.soundPlayer.playSound("bye-bye");
             }
-            parent.needsToMove = true;
             parent.getPositionPanel().setText("Bye visitor "+id);
             parent.getPositionPanel().setTimer(parent.et.currentTaskEndTime);
             parent.getPositionPanel().repaint();
@@ -47,10 +40,7 @@ public class ByeAction extends ZenoAction {
         }
     }
     public void conclude() {
-         if (parent.robotActive) {
-            masterThread.end();
-            parent.needsToMove = false;
-        }
+        parent.headTrackThread.end();
         parent.getPositionPanel().setText("Finished bye visitor "+id);
         parent.getPositionPanel().repaint();
     }

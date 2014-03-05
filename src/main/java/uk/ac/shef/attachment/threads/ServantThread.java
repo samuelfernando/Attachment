@@ -4,6 +4,8 @@
  */
 package uk.ac.shef.attachment.threads;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.vecmath.Point3f;
 import org.robokind.api.common.position.NormalizedDouble;
 import org.robokind.api.motion.Robot.RobotPositionHashMap;
@@ -23,12 +25,11 @@ abstract class ServantThread extends Thread {
     Point3f zenoPos;
     VectorCalc vc;
     Attachment parent;
-    MyUserRecord userRec;
+    short id;
 
-    public ServantThread(Attachment parent, MyUserRecord userRec) {
+    public ServantThread(Attachment parent) {
         vc = new VectorCalc();
         this.parent = parent;
-        this.userRec = userRec;
         this.myGoalPositions = new RobotPositionHashMap();
         String zenoPosStr = ReadConfig.readConfig().get("zeno-pos");
         String splits[] = zenoPosStr.split(" ");
@@ -42,7 +43,13 @@ abstract class ServantThread extends Thread {
     @Override
     public void run() {
         while (shouldRun) {
-            runChecked();
+           update();
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ServantThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
         }
     }
 
@@ -56,19 +63,22 @@ abstract class ServantThread extends Thread {
         if (parent.robotActive) {
             //System.out.println("set new goal position" + jointID + " "+ val);
 
-            parent.addGoalPosition(jointID, new NormalizedDouble(val));
+            parent.robotController.addGoalPosition(jointID, new NormalizedDouble(val));
         }
     }
 
-    abstract void runChecked();
-
+    abstract void update();
+    public void start(short id) {
+        this.id = id;
+        start();
+    }
     @Override
     public void start() {
         super.start();
         shouldRun = true;
     }
 
-    void end() {
+    public void end() {
         shouldRun = false;
     }
 }
